@@ -76,7 +76,19 @@ router.get('/me', auth, async (req, res) => {
       .select('-password')
       .populate('savedProducts')
       .populate('followingShops');
-    res.json(user);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      phone: user.phone,
+      neighborhood: user.neighborhood,
+      savedProducts: user.savedProducts,
+      followingShops: user.followingShops,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -92,7 +104,17 @@ router.put('/profile', auth, async (req, res) => {
       { new: true, runValidators: true }
     ).select('-password');
 
-    res.json(user);
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      phone: user.phone,
+      neighborhood: user.neighborhood,
+      savedProducts: user.savedProducts,
+      followingShops: user.followingShops,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

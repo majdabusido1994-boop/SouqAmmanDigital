@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
@@ -17,6 +18,7 @@ export default function MessagesScreen({ navigation }) {
   const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchConversations();
@@ -32,7 +34,13 @@ export default function MessagesScreen({ navigation }) {
       console.error('Conversations error:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchConversations();
   };
 
   const getOtherUser = (message) => {
@@ -68,6 +76,9 @@ export default function MessagesScreen({ navigation }) {
         data={conversations}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.terracotta} />
+        }
         renderItem={({ item }) => {
           const otherUser = getOtherUser(item.lastMessage);
           return (

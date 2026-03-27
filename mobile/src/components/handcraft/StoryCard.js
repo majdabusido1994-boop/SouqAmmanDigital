@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { createCardTap } from '../../utils/animations';
 import AnimatedLikeButton from '../shared/AnimatedLikeButton';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const cardWidth = Dimensions.get('window').width - spacing.lg * 2;
 
@@ -22,7 +23,7 @@ export default function StoryCard({ product, onPress }) {
     createCardTap(scaleAnim).start(() => onPress?.());
   };
 
-  const imageUri = product.images?.[0] || 'https://via.placeholder.com/400x300/F0E4D4/8B6F4E?text=Handcraft';
+  const imageUri = getImageUrl(product.images?.[0]) || 'https://via.placeholder.com/400x300/F0E4D4/8B6F4E?text=Handcraft';
 
   return (
     <TouchableWithoutFeedback onPress={handlePress}>

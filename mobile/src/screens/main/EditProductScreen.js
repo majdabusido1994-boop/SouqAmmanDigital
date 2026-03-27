@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import { productsAPI } from '../../services/api';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const CATEGORIES = [
   'fashion', 'accessories', 'home-decor', 'food',
@@ -25,7 +26,8 @@ const NEIGHBORHOODS = [
   'Abdali', 'Shmeisani', 'Jubeiha', 'Al-Weibdeh', 'Amman',
 ];
 
-export default function AddProductScreen({ navigation }) {
+export default function EditProductScreen({ route, navigation }) {
+  const { productId } = route.params;
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -34,8 +36,34 @@ export default function AddProductScreen({ navigation }) {
   const [tags, setTags] = useState('');
   const [acceptsOffers, setAcceptsOffers] = useState(true);
   const [acceptsCustomOrders, setAcceptsCustomOrders] = useState(false);
-  const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [productId]);
+
+  const fetchProduct = async () => {
+    try {
+      const { data } = await productsAPI.getById(productId);
+      setName(data.name);
+      setDescription(data.description);
+      setPrice(String(data.price));
+      setCategory(data.category);
+      setNeighborhood(data.neighborhood || 'Amman');
+      setTags(data.tags?.join(', ') || '');
+      setAcceptsOffers(data.acceptsOffers ?? true);
+      setAcceptsCustomOrders(data.acceptsCustomOrders ?? false);
+      setExistingImages(data.images || []);
+    } catch (error) {
+      Alert.alert('Error', 'Product not found');
+      navigation.goBack();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -45,15 +73,23 @@ export default function AddProductScreen({ navigation }) {
     });
 
     if (!result.canceled) {
-      setImages((prev) => [...prev, ...result.assets.map((a) => a.uri)].slice(0, 5));
+      const total = existingImages.length + newImages.length;
+      const remaining = 5 - total;
+      if (remaining > 0) {
+        setNewImages((prev) => [...prev, ...result.assets.map((a) => a.uri)].slice(0, remaining));
+      }
     }
   };
 
-  const removeImage = (index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+  const removeExistingImage = (index) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleCreate = async () => {
+  const removeNewImage = (index) => {
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSave = async () => {
     if (!name.trim() || !description.trim() || !price || !category) {
       Alert.alert('Error', 'Please fill in name, description, price, and category');
       return;
@@ -65,9 +101,9 @@ export default function AddProductScreen({ navigation }) {
       return;
     }
 
-    setLoading(true);
+    setSaving(true);
     try {
-      const productData = {
+      await productsAPI.update(productId, {
         name: name.trim(),
         description: description.trim(),
         price: priceNum,
@@ -76,57 +112,103 @@ export default function AddProductScreen({ navigation }) {
         tags: tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
         acceptsOffers,
         acceptsCustomOrders,
-      };
+        images: existingImages,
+      });
 
-      const { data: product } = await productsAPI.create(productData);
-
-      // Upload images if any were selected
-      if (images.length > 0) {
+      // Upload new images if any
+      if (newImages.length > 0) {
         try {
           const formData = new FormData();
-          images.forEach((uri, index) => {
+          newImages.forEach((uri, index) => {
             formData.append('images', {
               uri,
               name: `product-${Date.now()}-${index}.jpg`,
               type: 'image/jpeg',
             });
           });
-          await productsAPI.uploadImages(product._id, formData);
+          await productsAPI.uploadImages(productId, formData);
         } catch (uploadError) {
           console.warn('Image upload failed:', uploadError);
-          // Product created successfully, images can be added later
         }
       }
 
-      Alert.alert('Success', 'Product listed!', [
-        { text: 'OK', onPress: () => navigation.navigate('ManageShop') },
+      Alert.alert('Success', 'Product updated!', [
+        { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to create product');
+      Alert.alert('Error', error.message || 'Failed to update product');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Product',
+      'Are you sure you want to delete this product? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await productsAPI.delete(productId);
+              Alert.alert('Deleted', 'Product has been removed.', [
+                { text: 'OK', onPress: () => navigation.goBack() },
+              ]);
+            } catch (error) {
+              Alert.alert('Error', error.message || 'Failed to delete product');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={colors.terracotta} />
+      </View>
+    );
+  }
+
+  const totalImages = existingImages.length + newImages.length;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Images */}
       <View style={styles.field}>
-        <Text style={styles.label}>Photos (up to 5)</Text>
+        <Text style={styles.label}>Photos ({totalImages}/5)</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.imagesRow}>
-            {images.map((uri, index) => (
-              <View key={index} style={styles.imageWrapper}>
-                <Image source={{ uri }} style={styles.imagePreview} />
+            {existingImages.map((img, index) => (
+              <View key={`existing-${index}`} style={styles.imageWrapper}>
+                <Image source={{ uri: getImageUrl(img) }} style={styles.imagePreview} />
                 <TouchableOpacity
                   style={styles.removeImage}
-                  onPress={() => removeImage(index)}
+                  onPress={() => removeExistingImage(index)}
                 >
                   <Ionicons name="close" size={14} color={colors.white} />
                 </TouchableOpacity>
               </View>
             ))}
-            {images.length < 5 && (
+            {newImages.map((uri, index) => (
+              <View key={`new-${index}`} style={styles.imageWrapper}>
+                <Image source={{ uri }} style={styles.imagePreview} />
+                <TouchableOpacity
+                  style={styles.removeImage}
+                  onPress={() => removeNewImage(index)}
+                >
+                  <Ionicons name="close" size={14} color={colors.white} />
+                </TouchableOpacity>
+                <View style={styles.newBadge}>
+                  <Text style={styles.newBadgeText}>NEW</Text>
+                </View>
+              </View>
+            ))}
+            {totalImages < 5 && (
               <TouchableOpacity style={styles.addImage} onPress={pickImage}>
                 <Ionicons name="camera" size={28} color={colors.terracotta} />
                 <Text style={styles.addImageText}>Add Photo</Text>
@@ -253,17 +335,23 @@ export default function AddProductScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Submit */}
+      {/* Save */}
       <TouchableOpacity
-        style={[styles.submitButton, loading && styles.submitDisabled]}
-        onPress={handleCreate}
-        disabled={loading}
+        style={[styles.submitButton, saving && styles.submitDisabled]}
+        onPress={handleSave}
+        disabled={saving}
       >
-        {loading ? (
+        {saving ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text style={styles.submitText}>List Product</Text>
+          <Text style={styles.submitText}>Save Changes</Text>
         )}
+      </TouchableOpacity>
+
+      {/* Delete */}
+      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+        <Ionicons name="trash-outline" size={18} color={colors.error} />
+        <Text style={styles.deleteText}>Delete Product</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -272,6 +360,12 @@ export default function AddProductScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: colors.background,
   },
   content: {
@@ -322,6 +416,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  newBadge: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    backgroundColor: colors.olive,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  newBadgeText: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: colors.white,
   },
   addImage: {
     width: 100,
@@ -400,5 +508,21 @@ const styles = StyleSheet.create({
   submitText: {
     ...typography.h3,
     color: colors.white,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.error + '30',
+  },
+  deleteText: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.error,
   },
 });

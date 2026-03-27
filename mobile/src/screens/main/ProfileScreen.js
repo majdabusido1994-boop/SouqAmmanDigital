@@ -18,18 +18,15 @@ export default function ProfileScreen({ navigation }) {
   const [shop, setShop] = useState(null);
 
   useEffect(() => {
-    if (user?.role === 'seller') {
-      fetchShop();
-    }
+    fetchShop();
   }, [user]);
 
   const fetchShop = async () => {
     try {
-      const { data } = await shopsAPI.getAll({});
-      const myShop = data.shops.find((s) => s.owner._id === user?.id || s.owner === user?.id);
-      if (myShop) setShop(myShop);
+      const { data } = await shopsAPI.getMine();
+      if (data.shop) setShop(data.shop);
     } catch (error) {
-      console.error('Shop fetch error:', error);
+      // No shop found is expected for buyers
     }
   };
 
@@ -56,6 +53,13 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.roleBadge}>
           <Text style={styles.roleText}>{user?.role === 'seller' ? 'Seller' : 'Buyer'}</Text>
         </View>
+        <TouchableOpacity
+          style={styles.editProfileBtn}
+          onPress={() => navigation.navigate('EditProfile')}
+        >
+          <Ionicons name="create-outline" size={16} color={colors.terracotta} />
+          <Text style={styles.editProfileText}>Edit Profile</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Menu Items */}
@@ -65,13 +69,13 @@ export default function ProfileScreen({ navigation }) {
             {shop ? (
               <TouchableOpacity
                 style={styles.menuItem}
-                onPress={() => navigation.navigate('ShopDetail', { shopId: shop._id })}
+                onPress={() => navigation.navigate('ManageShop', { shopId: shop._id })}
               >
                 <View style={[styles.menuIcon, { backgroundColor: colors.terracotta + '15' }]}>
                   <Ionicons name="storefront" size={20} color={colors.terracotta} />
                 </View>
                 <View style={styles.menuContent}>
-                  <Text style={styles.menuTitle}>My Shop</Text>
+                  <Text style={styles.menuTitle}>Manage My Shop</Text>
                   <Text style={styles.menuSubtitle}>{shop.name}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
@@ -206,6 +210,22 @@ const styles = StyleSheet.create({
   },
   roleText: {
     ...typography.caption,
+    color: colors.terracotta,
+  },
+  editProfileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.terracotta + '40',
+  },
+  editProfileText: {
+    ...typography.bodySmall,
+    fontWeight: '600',
     color: colors.terracotta,
   },
   section: {

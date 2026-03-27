@@ -17,6 +17,7 @@ import MenuCard from '../../components/food/MenuCard';
 import DailySpecial from '../../components/food/DailySpecial';
 import VerifiedBadge from '../../components/shared/VerifiedBadge';
 import AnimatedButton from '../../components/shared/AnimatedButton';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export default function FoodShopScreen({ route, navigation }) {
   const { shopId } = route.params;
@@ -83,7 +84,7 @@ export default function FoodShopScreen({ route, navigation }) {
       {/* Cover with warm overlay */}
       <View style={styles.coverContainer}>
         {shop.coverImage ? (
-          <Image source={{ uri: shop.coverImage }} style={styles.cover} />
+          <Image source={{ uri: getImageUrl(shop.coverImage) }} style={styles.cover} />
         ) : (
           <View style={[styles.cover, styles.coverPlaceholder]} />
         )}
@@ -93,7 +94,7 @@ export default function FoodShopScreen({ route, navigation }) {
         <View style={styles.coverContent}>
           <View style={styles.avatarWrap}>
             {shop.profileImage ? (
-              <Image source={{ uri: shop.profileImage }} style={styles.avatar} />
+              <Image source={{ uri: getImageUrl(shop.profileImage) }} style={styles.avatar} />
             ) : (
               <View style={[styles.avatar, styles.avatarPlaceholder]}>
                 <Text style={styles.avatarText}>{shop.name.charAt(0)}</Text>

@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import { shopsAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const CATEGORIES = [
   { key: 'fashion', label: 'Fashion', icon: 'shirt' },
@@ -31,6 +32,7 @@ const NEIGHBORHOODS = [
 ];
 
 export default function CreateShopScreen({ navigation }) {
+  const { refreshUser } = useAuth();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [instagramHandle, setInstagramHandle] = useState('');
@@ -47,7 +49,7 @@ export default function CreateShopScreen({ navigation }) {
 
     setLoading(true);
     try {
-      await shopsAPI.create({
+      const { data: shop } = await shopsAPI.create({
         name: name.trim(),
         description: description.trim(),
         instagramHandle: instagramHandle.trim(),
@@ -55,8 +57,21 @@ export default function CreateShopScreen({ navigation }) {
         category,
         neighborhood,
       });
-      Alert.alert('Success', 'Your shop has been created!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      // Refresh user to update role to seller
+      await refreshUser();
+      Alert.alert('Success', 'Your shop has been created! Now add your logo and products.', [
+        {
+          text: 'Go to My Shop',
+          onPress: () => {
+            navigation.reset({
+              index: 1,
+              routes: [
+                { name: 'MainTabs' },
+                { name: 'ManageShop', params: { shopId: shop._id } },
+              ],
+            });
+          },
+        },
       ]);
     } catch (error) {
       Alert.alert('Error', error.message);

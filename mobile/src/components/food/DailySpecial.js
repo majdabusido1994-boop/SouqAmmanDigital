@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export default function DailySpecial({ item, onPress }) {
   const glowAnim = useRef(new Animated.Value(0)).current;
@@ -35,7 +36,7 @@ export default function DailySpecial({ item, onPress }) {
     outputRange: [colors.foodWarm + '40', colors.foodWarm],
   });
 
-  const imageUri = item?.images?.[0] || 'https://via.placeholder.com/400x200/FFF3E6/B85C38?text=Today+Special';
+  const imageUri = getImageUrl(item?.images?.[0]) || 'https://via.placeholder.com/400x200/FFF3E6/B85C38?text=Today+Special';
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9}>

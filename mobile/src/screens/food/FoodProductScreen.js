@@ -16,6 +16,7 @@ import { colors, spacing, typography, borderRadius, shadows } from '../../theme'
 import { productsAPI } from '../../services/api';
 import AnimatedLikeButton from '../../components/shared/AnimatedLikeButton';
 import AnimatedButton from '../../components/shared/AnimatedButton';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const { width } = Dimensions.get('window');
 
@@ -51,7 +52,7 @@ export default function FoodProductScreen({ route, navigation }) {
   if (!product) return null;
 
   const images = product.images?.length > 0
-    ? product.images
+    ? product.images.map(getImageUrl)
     : ['https://via.placeholder.com/400x300/FFF3E6/B85C38?text=Food'];
 
   return (

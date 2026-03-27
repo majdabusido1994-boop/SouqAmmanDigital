@@ -146,7 +146,7 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 productSchema.virtual('likeCount').get(function () {
-  return this.likes.length;
+  return this.likes ? this.likes.length : 0;
 });
 
 productSchema.set('toJSON', { virtuals: true });

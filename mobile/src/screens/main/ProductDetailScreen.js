@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { productsAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const { width } = Dimensions.get('window');
 
@@ -89,7 +90,7 @@ export default function ProductDetailScreen({ route, navigation }) {
   if (!product) return null;
 
   const images = product.images?.length > 0
-    ? product.images
+    ? product.images.map(getImageUrl)
     : ['https://via.placeholder.com/400x400/F5E6D3/C4763B?text=No+Image'];
 
   return (
@@ -143,7 +144,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           onPress={() => navigation.navigate('ShopDetail', { shopId: product.shop._id })}
         >
           {product.shop?.profileImage ? (
-            <Image source={{ uri: product.shop.profileImage }} style={styles.shopAvatar} />
+            <Image source={{ uri: getImageUrl(product.shop.profileImage) }} style={styles.shopAvatar} />
           ) : (
             <View style={[styles.shopAvatar, styles.shopAvatarPlaceholder]}>
               <Text style={styles.shopAvatarText}>

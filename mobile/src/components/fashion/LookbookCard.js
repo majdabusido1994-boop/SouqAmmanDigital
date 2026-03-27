@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import AnimatedLikeButton from '../shared/AnimatedLikeButton';
 import { createCardTap } from '../../utils/animations';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,7 +23,7 @@ export default function LookbookCard({ product, onPress, onShopPress }) {
     createCardTap(scaleAnim).start(() => onPress?.());
   };
 
-  const imageUri = product.images?.[0] || 'https://via.placeholder.com/400x600/F5E6D3/C4763B?text=Fashion';
+  const imageUri = getImageUrl(product.images?.[0]) || 'https://via.placeholder.com/400x600/F5E6D3/C4763B?text=Fashion';
 
   return (
     <TouchableWithoutFeedback onPress={handlePress}>
@@ -50,7 +51,7 @@ export default function LookbookCard({ product, onPress, onShopPress }) {
           <TouchableWithoutFeedback onPress={onShopPress}>
             <View style={styles.shopRow}>
               {product.shop?.profileImage ? (
-                <Image source={{ uri: product.shop.profileImage }} style={styles.shopAvatar} />
+                <Image source={{ uri: getImageUrl(product.shop.profileImage) }} style={styles.shopAvatar} />
               ) : (
                 <View style={[styles.shopAvatar, styles.shopAvatarPlaceholder]}>
                   <Text style={styles.shopAvatarText}>

@@ -13,6 +13,7 @@ import { colors, spacing, typography, borderRadius, shadows } from '../theme';
 import AnimatedLikeButton from './shared/AnimatedLikeButton';
 import { createCardTap } from '../utils/animations';
 import VerifiedBadge from './shared/VerifiedBadge';
+import { getImageUrl } from '../utils/imageUrl';
 
 const cardWidth = (Dimensions.get('window').width - spacing.md * 3) / 2;
 
@@ -23,7 +24,7 @@ export default function ProductCard({ product, onPress }) {
     createCardTap(scaleAnim).start(() => onPress?.());
   };
 
-  const imageUri = product.images?.[0] || 'https://via.placeholder.com/200x200/F5E6D3/C4763B?text=No+Image';
+  const imageUri = getImageUrl(product.images?.[0]) || 'https://via.placeholder.com/200x200/F5E6D3/C4763B?text=No+Image';
 
   return (
     <TouchableWithoutFeedback onPress={handlePress}>

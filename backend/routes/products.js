@@ -80,14 +80,18 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'You need to create a shop first' });
     }
 
+    // Remove any client-side image URIs (they'll be uploaded separately)
+    const { images, ...productData } = req.body;
+
     const product = await Product.create({
-      ...req.body,
+      ...productData,
       shop: shop._id,
       seller: req.user._id,
     });
 
     res.status(201).json(product);
   } catch (error) {
+    console.error('Product creation error:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -164,12 +168,20 @@ router.post('/:id/upload', auth, upload.array('images', 5), async (req, res) => 
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    const urls = req.files.map((file) => file.path);
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'No images uploaded' });
+    }
+
+    const urls = req.files.map((file) => {
+      if (file.path && file.path.startsWith('http')) return file.path;
+      return `/uploads/${file.filename}`;
+    });
     product.images.push(...urls);
     await product.save();
 
     res.json({ urls, images: product.images });
   } catch (error) {
+    console.error('Product upload error:', error);
     res.status(500).json({ message: error.message });
   }
 });

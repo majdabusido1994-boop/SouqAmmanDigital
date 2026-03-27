@@ -17,6 +17,7 @@ import AnimatedLikeButton from '../../components/shared/AnimatedLikeButton';
 import AnimatedButton from '../../components/shared/AnimatedButton';
 import MakeOfferModal from '../../components/shared/MakeOfferModal';
 import { messagesAPI } from '../../services/api';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const { width } = Dimensions.get('window');
 
@@ -71,7 +72,7 @@ export default function HandcraftProductScreen({ route, navigation }) {
   if (!product) return null;
 
   const images = product.images?.length > 0
-    ? product.images
+    ? product.images.map(getImageUrl)
     : ['https://via.placeholder.com/400x400/F0E4D4/8B6F4E?text=Handcraft'];
 
   return (
@@ -177,7 +178,7 @@ export default function HandcraftProductScreen({ route, navigation }) {
             onPress={() => navigation.navigate('HandcraftShop', { shopId: product.shop._id })}
           >
             {product.shop?.profileImage ? (
-              <Image source={{ uri: product.shop.profileImage }} style={styles.shopAvatar} />
+              <Image source={{ uri: getImageUrl(product.shop.profileImage) }} style={styles.shopAvatar} />
             ) : (
               <View style={[styles.shopAvatar, styles.shopAvatarPlaceholder]}>
                 <Text style={styles.shopAvatarText}>{product.shop?.name?.charAt(0)}</Text>

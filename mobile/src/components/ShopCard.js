@@ -2,12 +2,13 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function ShopCard({ shop, onPress }) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
       {shop.profileImage ? (
-        <Image source={{ uri: shop.profileImage }} style={styles.avatar} />
+        <Image source={{ uri: getImageUrl(shop.profileImage) }} style={styles.avatar} />
       ) : (
         <View style={[styles.avatar, styles.avatarPlaceholder]}>
           <Text style={styles.avatarText}>{shop.name?.charAt(0)}</Text>

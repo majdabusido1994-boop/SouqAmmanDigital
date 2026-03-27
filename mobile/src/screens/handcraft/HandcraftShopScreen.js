@@ -16,6 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import StoryCard from '../../components/handcraft/StoryCard';
 import VerifiedBadge from '../../components/shared/VerifiedBadge';
 import AnimatedButton from '../../components/shared/AnimatedButton';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export default function HandcraftShopScreen({ route, navigation }) {
   const { shopId } = route.params;
@@ -71,7 +72,7 @@ export default function HandcraftShopScreen({ route, navigation }) {
           {/* Avatar with rough border */}
           <View style={styles.avatarBorder}>
             {shop.profileImage ? (
-              <Image source={{ uri: shop.profileImage }} style={styles.avatar} />
+              <Image source={{ uri: getImageUrl(shop.profileImage) }} style={styles.avatar} />
             ) : (
               <View style={[styles.avatar, styles.avatarPlaceholder]}>
                 <Text style={styles.avatarText}>{shop.name.charAt(0)}</Text>

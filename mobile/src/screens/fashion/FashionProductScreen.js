@@ -20,6 +20,7 @@ import AnimatedLikeButton from '../../components/shared/AnimatedLikeButton';
 import AnimatedButton from '../../components/shared/AnimatedButton';
 import MakeOfferModal from '../../components/shared/MakeOfferModal';
 import { messagesAPI } from '../../services/api';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const { width } = Dimensions.get('window');
 
@@ -82,7 +83,7 @@ export default function FashionProductScreen({ route, navigation }) {
   if (!product) return null;
 
   const images = product.images?.length > 0
-    ? product.images
+    ? product.images.map(getImageUrl)
     : ['https://via.placeholder.com/400x600/F5E6D3/C4763B?text=Fashion'];
 
   return (

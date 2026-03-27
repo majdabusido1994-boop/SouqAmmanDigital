@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   Image,
   StyleSheet,
   TouchableOpacity,
@@ -19,6 +20,7 @@ import LookbookCard from '../../components/fashion/LookbookCard';
 import CountdownTimer from '../../components/shared/CountdownTimer';
 import VerifiedBadge from '../../components/shared/VerifiedBadge';
 import AnimatedButton from '../../components/shared/AnimatedButton';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const { width, height } = Dimensions.get('window');
 
@@ -76,7 +78,7 @@ export default function FashionShopScreen({ route, navigation }) {
       {/* Hero Cover */}
       <View style={styles.heroContainer}>
         {shop.coverImage ? (
-          <Image source={{ uri: shop.coverImage }} style={styles.heroCover} />
+          <Image source={{ uri: getImageUrl(shop.coverImage) }} style={styles.heroCover} />
         ) : (
           <View style={[styles.heroCover, { backgroundColor: colors.fashionBlack }]} />
         )}
@@ -84,7 +86,7 @@ export default function FashionShopScreen({ route, navigation }) {
 
         <View style={styles.heroContent}>
           {shop.profileImage ? (
-            <Image source={{ uri: shop.profileImage }} style={styles.avatar} />
+            <Image source={{ uri: getImageUrl(shop.profileImage) }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Text style={styles.avatarText}>{shop.name.charAt(0)}</Text>
@@ -205,37 +207,48 @@ export default function FashionShopScreen({ route, navigation }) {
   }
 
   // Grid View
+  const gridRows = [];
+  for (let i = 0; i < products.length; i += 2) {
+    gridRows.push(products.slice(i, i + 2));
+  }
+
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item._id}
-        numColumns={2}
-        ListHeaderComponent={renderHeader}
-        columnWrapperStyle={styles.gridRow}
-        contentContainerStyle={styles.gridContent}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.gridItem}
-            onPress={() => navigation.navigate('FashionProduct', { productId: item._id })}
-          >
-            <Image
-              source={{ uri: item.images?.[0] || 'https://via.placeholder.com/200x300/F5E6D3/C4763B' }}
-              style={styles.gridImage}
-            />
-            {item.isNewDrop && (
-              <View style={styles.gridDropBadge}>
-                <Text style={styles.gridDropText}>NEW</Text>
-              </View>
-            )}
-            <View style={styles.gridInfo}>
-              <Text style={styles.gridName} numberOfLines={1}>{item.name}</Text>
-              <Text style={styles.gridPrice}>{item.price} JOD</Text>
-            </View>
-          </TouchableOpacity>
+    <ScrollView style={styles.container} contentContainerStyle={styles.gridContent}>
+      {renderHeader()}
+      <View style={styles.gridContainer}>
+        {gridRows.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.gridRow}>
+            {row.map((item) => (
+              <TouchableOpacity
+                key={item._id}
+                style={styles.gridItem}
+                onPress={() => navigation.navigate('FashionProduct', { productId: item._id })}
+              >
+                <Image
+                  source={{ uri: getImageUrl(item.images?.[0]) || 'https://via.placeholder.com/200x300/F5E6D3/C4763B' }}
+                  style={styles.gridImage}
+                />
+                {item.isNewDrop && (
+                  <View style={styles.gridDropBadge}>
+                    <Text style={styles.gridDropText}>NEW</Text>
+                  </View>
+                )}
+                <View style={styles.gridInfo}>
+                  <Text style={styles.gridName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.gridPrice}>{item.price} JOD</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+            {row.length === 1 && <View style={styles.gridItem} />}
+          </View>
+        ))}
+        {products.length === 0 && (
+          <View style={styles.gridEmpty}>
+            <Text style={styles.gridEmptyText}>No products yet</Text>
+          </View>
         )}
-      />
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -399,13 +412,24 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
   },
   // Grid styles
-  gridContent: {
+  gridContainer: {
     paddingHorizontal: spacing.sm,
+  },
+  gridContent: {
     paddingBottom: spacing.xxl,
   },
   gridRow: {
+    flexDirection: 'row',
     gap: spacing.xs,
     marginBottom: spacing.xs,
+  },
+  gridEmpty: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
+  },
+  gridEmptyText: {
+    ...typography.body,
+    color: colors.textLight,
   },
   gridItem: {
     flex: 1,

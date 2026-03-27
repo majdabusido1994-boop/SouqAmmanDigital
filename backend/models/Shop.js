@@ -100,7 +100,7 @@ const shopSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 shopSchema.virtual('followerCount').get(function () {
-  return this.followers.length;
+  return this.followers ? this.followers.length : 0;
 });
 
 shopSchema.set('toJSON', { virtuals: true });

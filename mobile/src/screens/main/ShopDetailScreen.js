@@ -14,6 +14,7 @@ import { colors, spacing, typography, borderRadius, shadows } from '../../theme'
 import { shopsAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import ProductCard from '../../components/ProductCard';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export default function ShopDetailScreen({ route, navigation }) {
   const { shopId } = route.params;
@@ -64,7 +65,7 @@ export default function ShopDetailScreen({ route, navigation }) {
       {/* Cover */}
       <View style={styles.coverContainer}>
         {shop.coverImage ? (
-          <Image source={{ uri: shop.coverImage }} style={styles.cover} />
+          <Image source={{ uri: getImageUrl(shop.coverImage) }} style={styles.cover} />
         ) : (
           <View style={[styles.cover, styles.coverPlaceholder]} />
         )}
@@ -74,7 +75,7 @@ export default function ShopDetailScreen({ route, navigation }) {
       <View style={styles.info}>
         <View style={styles.avatarContainer}>
           {shop.profileImage ? (
-            <Image source={{ uri: shop.profileImage }} style={styles.avatar} />
+            <Image source={{ uri: getImageUrl(shop.profileImage) }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Text style={styles.avatarText}>{shop.name.charAt(0)}</Text>

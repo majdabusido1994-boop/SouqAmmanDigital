@@ -1,7 +1,12 @@
 node_modules/
 .env
+.env.production
 .expo/
 dist/
 *.log
 .DS_Store
 .claude/
+backend/uploads/*.jpg
+backend/uploads/*.png
+backend/uploads/*.webp
+!backend/uploads/.gitkeep

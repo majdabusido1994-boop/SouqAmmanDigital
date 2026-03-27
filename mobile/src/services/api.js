@@ -1,7 +1,11 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://localhost:5000/api';
+// TODO: Change this to your production server URL when deploying
+// For local dev, use your machine's IP. For production, use your deployed backend URL.
+const API_URL = __DEV__
+  ? 'http://192.168.100.236:5000/api'
+  : 'https://your-production-server.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -21,7 +25,14 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const message = error.response?.data?.message || 'Something went wrong';
+    let message = 'Something went wrong';
+    if (error.response?.data?.message) {
+      message = error.response.data.message;
+    } else if (error.code === 'ECONNABORTED') {
+      message = 'Request timed out. Please try again.';
+    } else if (!error.response) {
+      message = 'Cannot connect to server. Check your connection.';
+    }
     return Promise.reject(new Error(message));
   }
 );
@@ -52,6 +63,7 @@ export const productsAPI = {
 export const shopsAPI = {
   getAll: (params) => api.get('/shops', { params }),
   getById: (id) => api.get(`/shops/${id}`),
+  getMine: () => api.get('/shops/mine'),
   create: (data) => api.post('/shops', data),
   update: (id, data) => api.put(`/shops/${id}`, data),
   follow: (id) => api.post(`/shops/${id}/follow`),

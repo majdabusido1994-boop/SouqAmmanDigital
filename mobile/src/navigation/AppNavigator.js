@@ -1,5 +1,4 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +21,9 @@ import CreateShopScreen from '../screens/main/CreateShopScreen';
 import AddProductScreen from '../screens/main/AddProductScreen';
 import CustomOrderScreen from '../screens/main/CustomOrderScreen';
 import NearMeScreen from '../screens/main/NearMeScreen';
+import ManageShopScreen from '../screens/main/ManageShopScreen';
+import EditProductScreen from '../screens/main/EditProductScreen';
+import EditProfileScreen from '../screens/main/EditProfileScreen';
 
 // Fashion screens
 import FashionShopScreen from '../screens/fashion/FashionShopScreen';
@@ -40,7 +42,7 @@ const Tab = createBottomTabNavigator();
 
 const screenOptions = {
   headerStyle: {
-    backgroundColor: colors.beigeLight,
+    backgroundColor: colors.beigeLight || '#FAF3EB',
   },
   headerTintColor: colors.textPrimary,
   headerTitleStyle: {
@@ -97,82 +99,83 @@ export default function AppNavigator() {
   if (loading) return null;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={screenOptions}>
-        {!user ? (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="MainTabs" component={HomeTabs} options={{ headerShown: false }} />
+    <Stack.Navigator screenOptions={screenOptions}>
+      {!user ? (
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="MainTabs" component={HomeTabs} options={{ headerShown: false }} />
 
-            {/* Generic screens */}
-            <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: '' }} />
-            <Stack.Screen name="ShopDetail" component={ShopDetailScreen} options={{ title: '' }} />
-            <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
-            <Stack.Screen name="CreateShop" component={CreateShopScreen} options={{ title: 'Create Your Shop' }} />
-            <Stack.Screen name="AddProduct" component={AddProductScreen} options={{ title: 'Add Product' }} />
-            <Stack.Screen name="CustomOrder" component={CustomOrderScreen} options={{ title: 'Custom Order' }} />
+          {/* Generic screens */}
+          <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: '' }} />
+          <Stack.Screen name="ShopDetail" component={ShopDetailScreen} options={{ title: '' }} />
+          <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
+          <Stack.Screen name="CreateShop" component={CreateShopScreen} options={{ title: 'Create Your Shop' }} />
+          <Stack.Screen name="AddProduct" component={AddProductScreen} options={{ title: 'Add Product' }} />
+          <Stack.Screen name="CustomOrder" component={CustomOrderScreen} options={{ title: 'Custom Order' }} />
+          <Stack.Screen name="ManageShop" component={ManageShopScreen} options={{ title: 'My Shop' }} />
+          <Stack.Screen name="EditProduct" component={EditProductScreen} options={{ title: 'Edit Product' }} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
 
-            {/* Fashion screens */}
-            <Stack.Screen
-              name="FashionShop"
-              component={FashionShopScreen}
-              options={{
-                headerShown: false,
-                animation: 'fade',
-              }}
-            />
-            <Stack.Screen
-              name="FashionProduct"
-              component={FashionProductScreen}
-              options={{
-                title: '',
-                headerTransparent: true,
-                headerTintColor: colors.white,
-              }}
-            />
+          {/* Fashion screens */}
+          <Stack.Screen
+            name="FashionShop"
+            component={FashionShopScreen}
+            options={{
+              headerShown: false,
+              animation: 'fade',
+            }}
+          />
+          <Stack.Screen
+            name="FashionProduct"
+            component={FashionProductScreen}
+            options={{
+              title: '',
+              headerTransparent: true,
+              headerTintColor: colors.white,
+            }}
+          />
 
-            {/* Food screens */}
-            <Stack.Screen
-              name="FoodShop"
-              component={FoodShopScreen}
-              options={{
-                headerShown: false,
-                animation: 'slide_from_bottom',
-              }}
-            />
-            <Stack.Screen
-              name="FoodProduct"
-              component={FoodProductScreen}
-              options={{
-                title: '',
-                headerTransparent: true,
-              }}
-            />
+          {/* Food screens */}
+          <Stack.Screen
+            name="FoodShop"
+            component={FoodShopScreen}
+            options={{
+              headerShown: false,
+              animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="FoodProduct"
+            component={FoodProductScreen}
+            options={{
+              title: '',
+              headerTransparent: true,
+            }}
+          />
 
-            {/* Handcraft screens */}
-            <Stack.Screen
-              name="HandcraftShop"
-              component={HandcraftShopScreen}
-              options={{
-                headerShown: false,
-                animation: 'fade',
-              }}
-            />
-            <Stack.Screen
-              name="HandcraftProduct"
-              component={HandcraftProductScreen}
-              options={{
-                title: '',
-                headerTransparent: true,
-              }}
-            />
-          </>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+          {/* Handcraft screens */}
+          <Stack.Screen
+            name="HandcraftShop"
+            component={HandcraftShopScreen}
+            options={{
+              headerShown: false,
+              animation: 'fade',
+            }}
+          />
+          <Stack.Screen
+            name="HandcraftProduct"
+            component={HandcraftProductScreen}
+            options={{
+              title: '',
+              headerTransparent: true,
+            }}
+          />
+        </>
+      )}
+    </Stack.Navigator>
   );
 }

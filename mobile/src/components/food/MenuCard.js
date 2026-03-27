@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { createCardTap } from '../../utils/animations';
 import AnimatedLikeButton from '../shared/AnimatedLikeButton';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export default function MenuCard({ item, onPress }) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -19,7 +20,7 @@ export default function MenuCard({ item, onPress }) {
     createCardTap(scaleAnim).start(() => onPress?.());
   };
 
-  const imageUri = item.images?.[0] || 'https://via.placeholder.com/200x200/FFF3E6/B85C38?text=Food';
+  const imageUri = getImageUrl(item.images?.[0]) || 'https://via.placeholder.com/200x200/FFF3E6/B85C38?text=Food';
 
   return (
     <TouchableWithoutFeedback onPress={handlePress}>

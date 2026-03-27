@@ -35,6 +35,21 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/shops/mine - Get current user's shop
+router.get('/mine', auth, async (req, res) => {
+  try {
+    const shop = await Shop.findOne({ owner: req.user._id }).populate('owner', 'name avatar phone');
+    if (!shop) return res.status(404).json({ message: 'No shop found' });
+
+    const products = await Product.find({ shop: shop._id, isAvailable: true })
+      .sort({ createdAt: -1 });
+
+    res.json({ shop, products });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // GET /api/shops/:id - Get shop details
 router.get('/:id', async (req, res) => {
   try {
@@ -92,6 +107,25 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
+// DELETE /api/shops/:id - Delete shop
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const shop = await Shop.findById(req.params.id);
+    if (!shop) return res.status(404).json({ message: 'Shop not found' });
+    if (shop.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Delete all products belonging to this shop
+    await Product.deleteMany({ shop: shop._id });
+    await Shop.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Shop and all its products have been deleted' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // POST /api/shops/:id/follow - Follow/unfollow shop
 router.post('/:id/follow', auth, async (req, res) => {
   try {
@@ -128,11 +162,22 @@ router.post('/:id/upload', auth, upload.single('image'), async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image uploaded' });
+    }
+
     const field = req.body.field || 'profileImage';
-    shop[field] = req.file.path;
+    if (!['profileImage', 'coverImage'].includes(field)) {
+      return res.status(400).json({ message: 'Invalid field' });
+    }
+
+    const url = (req.file.path && req.file.path.startsWith('http'))
+      ? req.file.path
+      : `/uploads/${req.file.filename}`;
+    shop[field] = url;
     await shop.save();
 
-    res.json({ url: req.file.path });
+    res.json({ url });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
