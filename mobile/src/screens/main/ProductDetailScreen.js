@@ -11,10 +11,11 @@ import {
   Alert,
   Linking,
   FlatList,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
-import { productsAPI } from '../../services/api';
+import { productsAPI, reviewsAPI, ordersAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUrl';
 
@@ -27,10 +28,68 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [avgRating, setAvgRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [myRating, setMyRating] = useState(0);
+  const [myReviewText, setMyReviewText] = useState('');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     fetchProduct();
+    fetchReviews();
   }, [productId]);
+
+  const fetchReviews = async () => {
+    try {
+      const { data } = await reviewsAPI.getByProduct(productId);
+      setReviews(data.reviews);
+      setAvgRating(data.avgRating);
+      setReviewCount(data.count);
+    } catch (error) {
+      console.error('Reviews error:', error);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (myRating === 0) {
+      Alert.alert('Error', 'Please select a rating');
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      await reviewsAPI.create(productId, { rating: myRating, text: myReviewText });
+      setShowReviewForm(false);
+      setMyRating(0);
+      setMyReviewText('');
+      fetchReviews();
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const renderStars = (rating, size = 14, interactive = false) => {
+    return (
+      <View style={{ flexDirection: 'row', gap: 2 }}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <TouchableOpacity
+            key={star}
+            disabled={!interactive}
+            onPress={() => interactive && setMyRating(star)}
+          >
+            <Ionicons
+              name={star <= rating ? 'star' : 'star-outline'}
+              size={size}
+              color={star <= rating ? '#F5A623' : colors.textLight}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
 
   const fetchProduct = async () => {
     try {
@@ -182,11 +241,119 @@ export default function ProductDetailScreen({ route, navigation }) {
         )}
       </View>
 
+      {/* Reviews Section */}
+      <View style={styles.reviewsSection}>
+        <View style={styles.reviewsHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>Reviews</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              {renderStars(Math.round(avgRating))}
+              <Text style={styles.ratingText}>
+                {avgRating > 0 ? avgRating.toFixed(1) : 'No reviews'} ({reviewCount})
+              </Text>
+            </View>
+          </View>
+          {product.seller?._id !== user?.id && (
+            <TouchableOpacity
+              style={styles.writeReviewBtn}
+              onPress={() => setShowReviewForm(!showReviewForm)}
+            >
+              <Ionicons name="create-outline" size={16} color={colors.terracotta} />
+              <Text style={styles.writeReviewText}>Write Review</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {showReviewForm && (
+          <View style={styles.reviewForm}>
+            <Text style={styles.reviewFormLabel}>Your Rating</Text>
+            {renderStars(myRating, 28, true)}
+            <TextInput
+              style={styles.reviewInput}
+              value={myReviewText}
+              onChangeText={setMyReviewText}
+              placeholder="Share your experience... (optional)"
+              placeholderTextColor={colors.textLight}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+            <TouchableOpacity
+              style={[styles.submitReviewBtn, submittingReview && { opacity: 0.7 }]}
+              onPress={handleSubmitReview}
+              disabled={submittingReview}
+            >
+              {submittingReview ? (
+                <ActivityIndicator color={colors.white} size="small" />
+              ) : (
+                <Text style={styles.submitReviewText}>Submit Review</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {reviews.slice(0, 5).map((review) => (
+          <View key={review._id} style={styles.reviewCard}>
+            <View style={styles.reviewTop}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <View style={styles.reviewAvatar}>
+                  <Text style={styles.reviewAvatarText}>{review.user?.name?.charAt(0)}</Text>
+                </View>
+                <View>
+                  <Text style={styles.reviewName}>{review.user?.name}</Text>
+                  {renderStars(review.rating)}
+                </View>
+              </View>
+              <Text style={styles.reviewDate}>
+                {new Date(review.createdAt).toLocaleDateString()}
+              </Text>
+            </View>
+            {review.text && <Text style={styles.reviewText}>{review.text}</Text>}
+          </View>
+        ))}
+      </View>
+
       {/* Action Buttons */}
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleMessage}>
-          <Ionicons name="chatbubble-outline" size={20} color={colors.white} />
-          <Text style={styles.primaryButtonText}>Message Seller</Text>
+        {product.seller?._id !== user?.id && (
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => {
+              Alert.alert(
+                'Place Order',
+                `Order "${product.name}" for ${product.price} JOD?`,
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Cash on Pickup',
+                    onPress: async () => {
+                      try {
+                        await ordersAPI.create({
+                          items: [{ productId: product._id, quantity: 1 }],
+                          shopId: product.shop._id,
+                          paymentMethod: 'cash',
+                          deliveryMethod: 'pickup',
+                        });
+                        Alert.alert('Order Placed!', 'The seller will confirm your order shortly.', [
+                          { text: 'View Orders', onPress: () => navigation.navigate('Orders') },
+                        ]);
+                      } catch (error) {
+                        Alert.alert('Error', error.message);
+                      }
+                    },
+                  },
+                ]
+              );
+            }}
+          >
+            <Ionicons name="bag-check-outline" size={20} color={colors.white} />
+            <Text style={styles.primaryButtonText}>Order Now</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.secondaryButton} onPress={handleMessage}>
+          <Ionicons name="chatbubble-outline" size={20} color={colors.terracotta} />
+          <Text style={styles.secondaryButtonText}>Message Seller</Text>
         </TouchableOpacity>
 
         {product.acceptsOffers && (
@@ -443,5 +610,108 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     fontWeight: '500',
     color: colors.textSecondary,
+  },
+  reviewsSection: {
+    padding: spacing.lg,
+    paddingTop: 0,
+  },
+  reviewsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
+  },
+  ratingText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+  },
+  writeReviewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.terracotta + '40',
+  },
+  writeReviewText: {
+    ...typography.bodySmall,
+    fontWeight: '600',
+    color: colors.terracotta,
+  },
+  reviewForm: {
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+    ...shadows.sm,
+  },
+  reviewFormLabel: {
+    ...typography.bodySmall,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  reviewInput: {
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    fontSize: 14,
+    color: colors.textPrimary,
+    minHeight: 70,
+  },
+  submitReviewBtn: {
+    backgroundColor: colors.terracotta,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    alignItems: 'center',
+  },
+  submitReviewText: {
+    ...typography.bodySmall,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  reviewCard: {
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    ...shadows.sm,
+  },
+  reviewTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.xs,
+  },
+  reviewAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.olive + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reviewAvatarText: {
+    fontWeight: '700',
+    color: colors.olive,
+    fontSize: 14,
+  },
+  reviewName: {
+    ...typography.bodySmall,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  reviewDate: {
+    ...typography.bodySmall,
+    color: colors.textLight,
+    fontSize: 11,
+  },
+  reviewText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    lineHeight: 18,
+    marginTop: spacing.xs,
   },
 });

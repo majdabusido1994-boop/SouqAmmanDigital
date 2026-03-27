@@ -44,6 +44,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Shop',
   }],
+  pushToken: {
+    type: String,
+    default: '',
+  },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

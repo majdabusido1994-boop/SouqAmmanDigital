@@ -1,12 +1,24 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authAPI } from '../services/api';
+import { registerForPushNotifications } from '../utils/notifications';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const savePushToken = async () => {
+    try {
+      const pushToken = await registerForPushNotifications();
+      if (pushToken) {
+        await authAPI.savePushToken(pushToken);
+      }
+    } catch (error) {
+      console.log('Push token save error:', error);
+    }
+  };
 
   useEffect(() => {
     checkAuth();
@@ -18,6 +30,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         const { data } = await authAPI.getMe();
         setUser(data);
+        savePushToken();
       }
     } catch {
       await AsyncStorage.removeItem('token');
@@ -30,6 +43,7 @@ export const AuthProvider = ({ children }) => {
     const { data } = await authAPI.login({ email, password });
     await AsyncStorage.setItem('token', data.token);
     setUser(data.user);
+    savePushToken();
     return data.user;
   };
 
@@ -37,6 +51,7 @@ export const AuthProvider = ({ children }) => {
     const { data } = await authAPI.register({ name, email, password, role });
     await AsyncStorage.setItem('token', data.token);
     setUser(data.user);
+    savePushToken();
     return data.user;
   };
 

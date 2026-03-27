@@ -37,7 +37,14 @@
     },
     "owner": "majdabusido1994-boop",
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#C4763B"
+        }
+      ]
     ]
   }
 }

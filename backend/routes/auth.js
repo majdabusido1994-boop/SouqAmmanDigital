@@ -120,4 +120,15 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
+// PUT /api/auth/push-token - Save push notification token
+router.put('/push-token', auth, async (req, res) => {
+  try {
+    const { token } = req.body;
+    await User.findByIdAndUpdate(req.user._id, { pushToken: token });
+    res.json({ message: 'Push token saved' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

@@ -24,6 +24,7 @@ import NearMeScreen from '../screens/main/NearMeScreen';
 import ManageShopScreen from '../screens/main/ManageShopScreen';
 import EditProductScreen from '../screens/main/EditProductScreen';
 import EditProfileScreen from '../screens/main/EditProfileScreen';
+import OrdersScreen from '../screens/main/OrdersScreen';
 
 // Fashion screens
 import FashionShopScreen from '../screens/fashion/FashionShopScreen';
@@ -63,7 +64,7 @@ function HomeTabs() {
           let iconName;
           if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
           else if (route.name === 'Search') iconName = focused ? 'search' : 'search-outline';
-          else if (route.name === 'NearMe') iconName = focused ? 'location' : 'location-outline';
+          else if (route.name === 'Orders') iconName = focused ? 'receipt' : 'receipt-outline';
           else if (route.name === 'Messages') iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           else if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -86,7 +87,7 @@ function HomeTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
-      <Tab.Screen name="NearMe" component={NearMeScreen} options={{ title: 'Near Me' }} />
+      <Tab.Screen name="Orders" component={OrdersScreen} />
       <Tab.Screen name="Messages" component={MessagesScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
@@ -119,6 +120,7 @@ export default function AppNavigator() {
           <Stack.Screen name="ManageShop" component={ManageShopScreen} options={{ title: 'My Shop' }} />
           <Stack.Screen name="EditProduct" component={EditProductScreen} options={{ title: 'Edit Product' }} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
+          <Stack.Screen name="NearMe" component={NearMeScreen} options={{ title: 'Near Me' }} />
 
           {/* Fashion screens */}
           <Stack.Screen

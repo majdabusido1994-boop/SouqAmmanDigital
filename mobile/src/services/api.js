@@ -1,11 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// TODO: Change this to your production server URL when deploying
-// For local dev, use your machine's IP. For production, use your deployed backend URL.
-const API_URL = __DEV__
-  ? 'http://192.168.100.236:5000/api'
-  : 'https://your-production-server.com/api';
+import { API_URL } from '../config';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -43,6 +38,7 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
+  savePushToken: (token) => api.put('/auth/push-token', { token }),
 };
 
 // Products
@@ -78,6 +74,22 @@ export const messagesAPI = {
   getConversations: () => api.get('/messages/conversations'),
   getMessages: (userId) => api.get(`/messages/${userId}`),
   send: (userId, data) => api.post(`/messages/${userId}`, data),
+};
+
+// Orders
+export const ordersAPI = {
+  getAll: (role) => api.get('/orders', { params: { role } }),
+  getById: (id) => api.get(`/orders/${id}`),
+  create: (data) => api.post('/orders', data),
+  updateStatus: (id, data) => api.put(`/orders/${id}/status`, data),
+};
+
+// Reviews
+export const reviewsAPI = {
+  getByProduct: (productId) => api.get(`/reviews/product/${productId}`),
+  getByShop: (shopId) => api.get(`/reviews/shop/${shopId}`),
+  create: (productId, data) => api.post(`/reviews/product/${productId}`, data),
+  delete: (id) => api.delete(`/reviews/${id}`),
 };
 
 export default api;
