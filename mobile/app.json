@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "SOUQ AMMAN DIGITAL",
+    "slug": "souq-amman-digital",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#C4763B",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.souqammandigital.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#C4763B"
+      },
+      "package": "com.souqammandigital.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
