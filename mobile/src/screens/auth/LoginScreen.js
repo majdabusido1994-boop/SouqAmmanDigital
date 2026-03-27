@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
@@ -88,6 +89,16 @@ export default function LoginScreen({ navigation }) {
               <Text style={styles.buttonText}>Sign In</Text>
             )}
           </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Google Sign-In */}
+          <GoogleSignInButton />
 
           <TouchableOpacity
             style={styles.linkButton}
@@ -194,6 +205,21 @@ const styles = StyleSheet.create({
   buttonText: {
     ...typography.h3,
     color: colors.white,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.xs,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    ...typography.bodySmall,
+    color: colors.textLight,
+    paddingHorizontal: spacing.md,
   },
   linkButton: {
     alignItems: 'center',

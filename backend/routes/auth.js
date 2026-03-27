@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 
@@ -16,6 +17,9 @@ router.post('/register', async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      if (existingUser.authProvider === 'google') {
+        return res.status(400).json({ message: 'This email is linked to a Google account. Please sign in with Google.' });
+      }
       return res.status(400).json({ message: 'Email already registered' });
     }
 
@@ -47,6 +51,10 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
+    if (!user.password) {
+      return res.status(400).json({ message: 'This account uses Google Sign-In. Please sign in with Google.' });
+    }
+
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid email or password' });
@@ -66,6 +74,79 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/auth/google - Google Sign-In
+router.post('/google', async (req, res) => {
+  try {
+    const { idToken, accessToken } = req.body;
+    let googleUser;
+
+    if (idToken) {
+      // Verify ID token with Google
+      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+      const ticket = await client.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      googleUser = ticket.getPayload();
+    } else if (accessToken) {
+      // Fetch user info from Google using access token
+      const response = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!response.ok) {
+        return res.status(401).json({ message: 'Invalid Google token' });
+      }
+      googleUser = await response.json();
+      // Map fields to match ID token format
+      googleUser.sub = googleUser.id;
+      googleUser.picture = googleUser.picture || '';
+    } else {
+      return res.status(400).json({ message: 'No Google token provided' });
+    }
+
+    const { sub: googleId, email, name, picture } = googleUser;
+
+    // Check if user exists by googleId or email
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+    if (user) {
+      // Link Google account if existing email user hasn't linked yet
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.authProvider = 'google';
+        if (picture && !user.avatar) user.avatar = picture;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        authProvider: 'google',
+        avatar: picture || '',
+        role: 'buyer',
+      });
+    }
+
+    const token = generateToken(user._id);
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ message: 'Google authentication failed' });
   }
 });
 

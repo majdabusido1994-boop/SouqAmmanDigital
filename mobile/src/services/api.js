@@ -39,6 +39,7 @@ export const authAPI = {
   getMe: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
   savePushToken: (token) => api.put('/auth/push-token', { token }),
+  googleLogin: (data) => api.post('/auth/google', data),
 };
 
 // Products
