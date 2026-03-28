@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme';
+import SplashScreen from '../screens/SplashScreen';
 
 // Auth screens
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -38,6 +39,13 @@ import FoodProductScreen from '../screens/food/FoodProductScreen';
 import HandcraftShopScreen from '../screens/handcraft/HandcraftShopScreen';
 import HandcraftProductScreen from '../screens/handcraft/HandcraftProductScreen';
 
+// Admin screens
+import AdminPanelScreen from '../screens/admin/AdminPanelScreen';
+import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
+import AdminShopsScreen from '../screens/admin/AdminShopsScreen';
+import AdminProductsScreen from '../screens/admin/AdminProductsScreen';
+import AdminMessagesScreen from '../screens/admin/AdminMessagesScreen';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -45,9 +53,10 @@ const screenOptions = {
   headerStyle: {
     backgroundColor: colors.beigeLight || '#FAF3EB',
   },
-  headerTintColor: colors.textPrimary,
+  headerTintColor: colors.terracottaDark || '#A55D2B',
   headerTitleStyle: {
     fontWeight: '600',
+    color: colors.textPrimary,
   },
   headerShadowVisible: false,
   contentStyle: {
@@ -97,7 +106,7 @@ function HomeTabs() {
 export default function AppNavigator() {
   const { user, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) return <SplashScreen />;
 
   return (
     <Stack.Navigator screenOptions={screenOptions}>
@@ -111,8 +120,8 @@ export default function AppNavigator() {
           <Stack.Screen name="MainTabs" component={HomeTabs} options={{ headerShown: false }} />
 
           {/* Generic screens */}
-          <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: '' }} />
-          <Stack.Screen name="ShopDetail" component={ShopDetailScreen} options={{ title: '' }} />
+          <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: '', headerTransparent: true, headerTintColor: colors.terracottaDark || '#A55D2B' }} />
+          <Stack.Screen name="ShopDetail" component={ShopDetailScreen} options={{ title: '', headerTransparent: true, headerTintColor: colors.terracottaDark || '#A55D2B' }} />
           <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
           <Stack.Screen name="CreateShop" component={CreateShopScreen} options={{ title: 'Create Your Shop' }} />
           <Stack.Screen name="AddProduct" component={AddProductScreen} options={{ title: 'Add Product' }} />
@@ -122,12 +131,21 @@ export default function AppNavigator() {
           <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
           <Stack.Screen name="NearMe" component={NearMeScreen} options={{ title: 'Near Me' }} />
 
+          {/* Admin screens */}
+          <Stack.Screen name="AdminPanel" component={AdminPanelScreen} options={{ title: 'Admin Panel' }} />
+          <Stack.Screen name="AdminUsers" component={AdminUsersScreen} options={{ title: 'Manage Users' }} />
+          <Stack.Screen name="AdminShops" component={AdminShopsScreen} options={{ title: 'Manage Shops' }} />
+          <Stack.Screen name="AdminProducts" component={AdminProductsScreen} options={{ title: 'Manage Products' }} />
+          <Stack.Screen name="AdminMessages" component={AdminMessagesScreen} options={{ title: 'Messages' }} />
+
           {/* Fashion screens */}
           <Stack.Screen
             name="FashionShop"
             component={FashionShopScreen}
             options={{
-              headerShown: false,
+              title: '',
+              headerTransparent: true,
+              headerTintColor: colors.terracottaDark || '#A55D2B',
               animation: 'fade',
             }}
           />
@@ -137,7 +155,7 @@ export default function AppNavigator() {
             options={{
               title: '',
               headerTransparent: true,
-              headerTintColor: colors.white,
+              headerTintColor: colors.terracottaDark || '#A55D2B',
             }}
           />
 
@@ -146,7 +164,9 @@ export default function AppNavigator() {
             name="FoodShop"
             component={FoodShopScreen}
             options={{
-              headerShown: false,
+              title: '',
+              headerTransparent: true,
+              headerTintColor: colors.terracottaDark || '#A55D2B',
               animation: 'slide_from_bottom',
             }}
           />
@@ -156,6 +176,7 @@ export default function AppNavigator() {
             options={{
               title: '',
               headerTransparent: true,
+              headerTintColor: colors.terracottaDark || '#A55D2B',
             }}
           />
 
@@ -164,7 +185,9 @@ export default function AppNavigator() {
             name="HandcraftShop"
             component={HandcraftShopScreen}
             options={{
-              headerShown: false,
+              title: '',
+              headerTransparent: true,
+              headerTintColor: colors.terracottaDark || '#A55D2B',
               animation: 'fade',
             }}
           />
@@ -174,6 +197,7 @@ export default function AppNavigator() {
             options={{
               title: '',
               headerTransparent: true,
+              headerTintColor: colors.terracottaDark || '#A55D2B',
             }}
           />
         </>

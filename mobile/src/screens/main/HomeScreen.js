@@ -3,52 +3,115 @@ import {
   View,
   Text,
   FlatList,
+  SectionList,
+  Image,
   StyleSheet,
   RefreshControl,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius } from '../../theme';
-import { productsAPI } from '../../services/api';
-import ProductCard from '../../components/ProductCard';
-import { navigateToProduct } from '../../utils/shopRouter';
+import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
+import { shopsAPI } from '../../services/api';
+import { getImageUrl } from '../../utils/imageUrl';
+import { navigateToShop } from '../../utils/shopRouter';
+
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.7;
 
 const CATEGORIES = [
-  { key: '', label: 'All' },
-  { key: 'fashion', label: 'Fashion' },
-  { key: 'accessories', label: 'Accessories' },
-  { key: 'home-decor', label: 'Home' },
-  { key: 'food', label: 'Food' },
-  { key: 'art', label: 'Art' },
-  { key: 'handmade', label: 'Handmade' },
-  { key: 'beauty', label: 'Beauty' },
-  { key: 'services', label: 'Services' },
+  { key: '', label: 'All', icon: 'grid-outline' },
+  { key: 'fashion', label: 'Fashion', icon: 'shirt-outline' },
+  { key: 'accessories', label: 'Accessories', icon: 'watch-outline' },
+  { key: 'home-decor', label: 'Home', icon: 'home-outline' },
+  { key: 'food', label: 'Food', icon: 'restaurant-outline' },
+  { key: 'art', label: 'Art', icon: 'color-palette-outline' },
+  { key: 'handmade', label: 'Handmade', icon: 'hand-left-outline' },
+  { key: 'beauty', label: 'Beauty', icon: 'flower-outline' },
+  { key: 'services', label: 'Services', icon: 'construct-outline' },
 ];
 
+const CATEGORY_LABELS = Object.fromEntries(
+  CATEGORIES.map((c) => [c.key, c.label])
+);
+
+function ShopCardLarge({ shop, onPress }) {
+  return (
+    <TouchableOpacity style={styles.shopCard} onPress={onPress} activeOpacity={0.9}>
+      {shop.profileImage ? (
+        <Image source={{ uri: getImageUrl(shop.profileImage) }} style={styles.shopImage} />
+      ) : (
+        <View style={[styles.shopImage, styles.shopImagePlaceholder]}>
+          <Text style={styles.shopImageText}>{shop.name?.charAt(0)}</Text>
+        </View>
+      )}
+      <View style={styles.shopInfo}>
+        <View style={styles.shopHeader}>
+          <Text style={styles.shopName} numberOfLines={1}>{shop.name}</Text>
+          {shop.category && (
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryBadgeText}>
+                {CATEGORY_LABELS[shop.category] || shop.category}
+              </Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.shopDescription} numberOfLines={2}>{shop.description}</Text>
+        <View style={styles.shopMeta}>
+          {shop.neighborhood && (
+            <View style={styles.metaItem}>
+              <Ionicons name="location-outline" size={13} color={colors.terracotta} />
+              <Text style={styles.metaText}>{shop.neighborhood}</Text>
+            </View>
+          )}
+          <View style={styles.metaItem}>
+            <Ionicons name="people-outline" size={13} color={colors.terracotta} />
+            <Text style={styles.metaText}>{shop.followers?.length || 0} followers</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function HorizontalShopCard({ shop, onPress }) {
+  return (
+    <TouchableOpacity style={styles.hCard} onPress={onPress} activeOpacity={0.9}>
+      {shop.profileImage ? (
+        <Image source={{ uri: getImageUrl(shop.profileImage) }} style={styles.hCardImage} />
+      ) : (
+        <View style={[styles.hCardImage, styles.shopImagePlaceholder]}>
+          <Text style={styles.hCardInitial}>{shop.name?.charAt(0)}</Text>
+        </View>
+      )}
+      <View style={styles.hCardOverlay}>
+        <Text style={styles.hCardName} numberOfLines={1}>{shop.name}</Text>
+        {shop.neighborhood && (
+          <View style={styles.hCardLocation}>
+            <Ionicons name="location" size={11} color={colors.white} />
+            <Text style={styles.hCardLocationText}>{shop.neighborhood}</Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function HomeScreen({ navigation }) {
-  const [products, setProducts] = useState([]);
+  const [shops, setShops] = useState([]);
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
-  const fetchProducts = useCallback(async (pageNum = 1, cat = category) => {
+  const fetchShops = useCallback(async (cat = category) => {
     try {
-      const params = { page: pageNum, limit: 20 };
+      const params = {};
       if (cat) params.category = cat;
-
-      const { data } = await productsAPI.getAll(params);
-
-      if (pageNum === 1) {
-        setProducts(data.products);
-      } else {
-        setProducts((prev) => [...prev, ...data.products]);
-      }
-      setHasMore(pageNum < data.totalPages);
+      const { data } = await shopsAPI.getAll(params);
+      setShops(data.shops || data);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error fetching shops:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -57,27 +120,29 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     setLoading(true);
-    setPage(1);
-    fetchProducts(1, category);
+    fetchShops(category);
   }, [category]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    setPage(1);
-    fetchProducts(1);
+    fetchShops();
   };
 
-  const loadMore = () => {
-    if (hasMore && !loading) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchProducts(nextPage);
-    }
+  const groupedShops = () => {
+    const groups = {};
+    shops.forEach((shop) => {
+      const cat = shop.category || 'other';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(shop);
+    });
+    return Object.entries(groups).map(([key, data]) => ({
+      title: CATEGORY_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1),
+      data: [{ key, shops: data }],
+    }));
   };
 
   const renderHeader = () => (
     <View style={styles.header}>
-      {/* Title Bar */}
       <View style={styles.titleBar}>
         <View>
           <Text style={styles.title}>Souq Amman</Text>
@@ -91,7 +156,6 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Categories */}
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -103,6 +167,11 @@ export default function HomeScreen({ navigation }) {
             style={[styles.categoryChip, category === item.key && styles.categoryActive]}
             onPress={() => setCategory(item.key)}
           >
+            <Ionicons
+              name={item.icon}
+              size={16}
+              color={category === item.key ? colors.white : colors.terracotta}
+            />
             <Text
               style={[
                 styles.categoryText,
@@ -117,7 +186,7 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 
-  if (loading && products.length === 0) {
+  if (loading && shops.length === 0) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={colors.terracotta} />
@@ -125,35 +194,79 @@ export default function HomeScreen({ navigation }) {
     );
   }
 
+  // Filtered category view — show shops as vertical list
+  if (category) {
+    return (
+      <View style={styles.container}>
+        <FlatList
+          data={shops}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          ListHeaderComponent={renderHeader}
+          renderItem={({ item }) => (
+            <ShopCardLarge
+              shop={item}
+              onPress={() => navigateToShop(navigation, item)}
+            />
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.terracotta} />
+          }
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons name="storefront-outline" size={48} color={colors.textLight} />
+              <Text style={styles.emptyText}>No shops in this category</Text>
+            </View>
+          }
+        />
+      </View>
+    );
+  }
+
+  // "All" view — show shops grouped by category in horizontal rows
+  const sections = groupedShops();
+
   return (
     <View style={styles.container}>
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item._id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
+      <SectionList
+        sections={sections}
+        keyExtractor={(item, index) => item.key + index}
+        stickySectionHeadersEnabled={false}
         contentContainerStyle={styles.list}
         ListHeaderComponent={renderHeader}
+        renderSectionHeader={({ section }) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <TouchableOpacity onPress={() => setCategory(
+              CATEGORIES.find((c) => c.label === section.title)?.key || ''
+            )}>
+              <Text style={styles.seeAll}>See all</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         renderItem={({ item }) => (
-          <ProductCard
-            product={item}
-            onPress={() => navigateToProduct(navigation, item)}
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={item.shops}
+            keyExtractor={(shop) => shop._id}
+            contentContainerStyle={styles.horizontalList}
+            renderItem={({ item: shop }) => (
+              <HorizontalShopCard
+                shop={shop}
+                onPress={() => navigateToShop(navigation, shop)}
+              />
+            )}
           />
         )}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.terracotta}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.terracotta} />
         }
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🏪</Text>
-            <Text style={styles.emptyText}>No products yet</Text>
-            <Text style={styles.emptySubtext}>Be the first to list something!</Text>
+            <Ionicons name="storefront-outline" size={48} color={colors.textLight} />
+            <Text style={styles.emptyText}>No shops yet</Text>
+            <Text style={styles.emptySubtext}>Be the first to open a shop!</Text>
           </View>
         }
       />
@@ -201,17 +314,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.terracotta,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    ...shadows.sm,
   },
   categoriesContainer: {
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
   },
   categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
@@ -232,24 +344,153 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   list: {
-    paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxl,
   },
-  row: {
-    gap: spacing.md,
-    marginBottom: spacing.md,
+
+  // Section headers
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
+  sectionTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+  },
+  seeAll: {
+    ...typography.bodySmall,
+    color: colors.terracotta,
+    fontWeight: '600',
+  },
+
+  // Horizontal shop cards (for "All" view)
+  horizontalList: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+  },
+  hCard: {
+    width: CARD_WIDTH,
+    height: 180,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    ...shadows.md,
+  },
+  hCardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  shopImagePlaceholder: {
+    backgroundColor: colors.terracotta,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  hCardInitial: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: colors.white,
+    opacity: 0.6,
+  },
+  hCardOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: spacing.md,
+    backgroundColor: 'rgba(26, 18, 16, 0.6)',
+  },
+  hCardName: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  hCardLocation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  hCardLocationText: {
+    fontSize: 12,
+    color: colors.white,
+    opacity: 0.85,
+  },
+
+  // Vertical shop cards (for filtered view)
+  shopCard: {
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.lg,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+    ...shadows.sm,
+  },
+  shopImage: {
+    width: '100%',
+    height: 160,
+  },
+  shopImageText: {
+    fontSize: 56,
+    fontWeight: '700',
+    color: colors.white,
+    opacity: 0.5,
+  },
+  shopInfo: {
+    padding: spacing.md,
+  },
+  shopHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  shopName: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  categoryBadge: {
+    backgroundColor: colors.beige,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+    marginLeft: spacing.sm,
+  },
+  categoryBadgeText: {
+    ...typography.caption,
+    fontSize: 10,
+    color: colors.terracotta,
+  },
+  shopDescription: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  shopMeta: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaText: {
+    ...typography.bodySmall,
+    color: colors.textLight,
+  },
+
+  // Empty state
   empty: {
     alignItems: 'center',
     paddingVertical: spacing.xxl * 2,
   },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: spacing.md,
-  },
   emptyText: {
     ...typography.h3,
     color: colors.textPrimary,
+    marginTop: spacing.md,
   },
   emptySubtext: {
     ...typography.body,

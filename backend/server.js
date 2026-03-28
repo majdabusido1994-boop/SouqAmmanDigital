@@ -8,8 +8,31 @@ const rateLimit = require('express-rate-limit');
 const { Server } = require('socket.io');
 const connectDB = require('./config/db');
 
-// Connect to MongoDB
-connectDB();
+const User = require('./models/User');
+
+// Connect to MongoDB and seed admin
+connectDB().then(async () => {
+  try {
+    let admin = await User.findOne({ email: 'abusido94@souqamman.com' });
+    if (admin) {
+      // Ensure role is superadmin and reset password
+      admin.role = 'superadmin';
+      admin.password = 'majd94';
+      await admin.save();
+      console.log('Super admin account updated');
+    } else {
+      await User.create({
+        name: 'abusido94',
+        email: 'abusido94@souqamman.com',
+        password: 'majd94',
+        role: 'superadmin',
+      });
+      console.log('Super admin account created');
+    }
+  } catch (error) {
+    console.log('Admin seed check:', error.message);
+  }
+});
 
 const app = express();
 const server = http.createServer(app);
@@ -58,6 +81,7 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/orders', require('./routes/orders'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Health check
 app.get('/api/health', (req, res) => {

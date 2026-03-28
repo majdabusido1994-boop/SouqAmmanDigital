@@ -93,4 +93,29 @@ export const reviewsAPI = {
   delete: (id) => api.delete(`/reviews/${id}`),
 };
 
+// Admin
+export const adminAPI = {
+  getStats: () => api.get('/admin/stats'),
+  // Users
+  getUsers: (params) => api.get('/admin/users', { params }),
+  getUser: (id) => api.get(`/admin/users/${id}`),
+  updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/admin/users/${id}`),
+  // Shops
+  getShops: (params) => api.get('/admin/shops', { params }),
+  updateShop: (id, data) => api.put(`/admin/shops/${id}`, data),
+  deleteShop: (id) => api.delete(`/admin/shops/${id}`),
+  verifyShop: (id, isVerified) => api.put(`/admin/shops/${id}/verify`, { isVerified }),
+  toggleShopActive: (id) => api.put(`/admin/shops/${id}/toggle-active`),
+  // Products
+  getProducts: (params) => api.get('/admin/products', { params }),
+  updateProduct: (id, data) => api.put(`/admin/products/${id}`, data),
+  deleteProduct: (id) => api.delete(`/admin/products/${id}`),
+  toggleProductAvailable: (id) => api.put(`/admin/products/${id}/toggle-available`),
+  // Messages
+  getMessages: (params) => api.get('/admin/messages', { params }),
+  deleteMessage: (id) => api.delete(`/admin/messages/${id}`),
+};
+
+
 export default api;

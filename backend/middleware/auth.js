@@ -24,10 +24,17 @@ const auth = async (req, res, next) => {
 };
 
 const sellerOnly = (req, res, next) => {
-  if (req.user.role !== 'seller') {
+  if (req.user.role !== 'seller' && req.user.role !== 'superadmin') {
     return res.status(403).json({ message: 'Access denied. Sellers only.' });
   }
   next();
 };
 
-module.exports = { auth, sellerOnly };
+const adminOnly = (req, res, next) => {
+  if (req.user.role !== 'superadmin') {
+    return res.status(403).json({ message: 'Access denied. Admin only.' });
+  }
+  next();
+};
+
+module.exports = { auth, sellerOnly, adminOnly };

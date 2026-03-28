@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
@@ -31,10 +32,16 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: logout },
-    ]);
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to sign out?')) {
+        logout();
+      }
+    } else {
+      Alert.alert('Logout', 'Are you sure you want to sign out?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign Out', style: 'destructive', onPress: logout },
+      ]);
+    }
   };
 
   return (
@@ -61,6 +68,18 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.editProfileText}>Edit Profile</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Admin Panel */}
+      {user?.role === 'superadmin' && (
+        <TouchableOpacity
+          style={styles.adminButton}
+          onPress={() => navigation.navigate('AdminPanel')}
+        >
+          <Ionicons name="shield-checkmark" size={20} color={colors.white} />
+          <Text style={styles.adminButtonText}>Admin Panel</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.white} />
+        </TouchableOpacity>
+      )}
 
       {/* Menu Items */}
       <View style={styles.section}>
@@ -260,6 +279,23 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     color: colors.textSecondary,
     marginTop: 1,
+  },
+  adminButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.terracottaDark || '#A55D2B',
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    gap: spacing.sm,
+    ...shadows.md,
+  },
+  adminButtonText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.white,
+    flex: 1,
   },
   logoutButton: {
     flexDirection: 'row',
