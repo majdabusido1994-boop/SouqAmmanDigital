@@ -14,3 +14,6 @@ bawagii/
 bawagii-mobile/
 mobile/assets/lo.png
 mobile/assets/logo.png
+
+# Local Netlify folder
+.netlify
