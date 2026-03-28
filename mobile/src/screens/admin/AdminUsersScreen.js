@@ -13,10 +13,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { adminAPI } from '../../services/api';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 const ROLES = ['buyer', 'seller', 'superadmin'];
 
 export default function AdminUsersScreen({ navigation }) {
+  const { t } = useLanguage();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -54,9 +56,9 @@ export default function AdminUsersScreen({ navigation }) {
     if (Platform.OS === 'web') {
       if (window.confirm(`Delete user "${user.name}" and all their data?`)) doDelete();
     } else {
-      Alert.alert('Delete User', `Delete "${user.name}" and all their data?`, [
+      Alert.alert(t('deleteUser'), `Delete "${user.name}" and all their data?`, [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: doDelete },
+        { text: t('deleteUser'), style: 'destructive', onPress: doDelete },
       ]);
     }
   };
@@ -80,7 +82,7 @@ export default function AdminUsersScreen({ navigation }) {
     <View style={styles.container}>
       <TextInput
         style={styles.searchInput}
-        placeholder="Search users..."
+        placeholder={t('searchUsers')}
         placeholderTextColor={colors.textLight}
         value={search}
         onChangeText={setSearch}
@@ -126,7 +128,7 @@ export default function AdminUsersScreen({ navigation }) {
                     style={styles.actionBtn}
                     onPress={() => changeRole(item, r)}
                   >
-                    <Text style={styles.actionText}>Make {r}</Text>
+                    <Text style={styles.actionText}>{t('changeRole')}: {r}</Text>
                   </TouchableOpacity>
                 ))}
                 {item.role !== 'superadmin' && (
@@ -141,7 +143,7 @@ export default function AdminUsersScreen({ navigation }) {
             </View>
           )}
           ListEmptyComponent={
-            <Text style={styles.empty}>No users found</Text>
+            <Text style={styles.empty}>{t('noUsers')}</Text>
           }
         />
       )}

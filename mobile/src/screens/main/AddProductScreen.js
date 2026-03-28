@@ -14,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import { productsAPI } from '../../services/api';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 const CATEGORIES = [
   'fashion', 'accessories', 'home-decor', 'food',
@@ -25,7 +26,14 @@ const NEIGHBORHOODS = [
   'Abdali', 'Shmeisani', 'Jubeiha', 'Al-Weibdeh', 'Amman',
 ];
 
+const CATEGORY_LABELS = {
+  'fashion': 'fashion', 'accessories': 'accessories', 'home-decor': 'homeDecor',
+  'food': 'food', 'art': 'art', 'handmade': 'handmade',
+  'beauty': 'beauty', 'services': 'services', 'other': 'other',
+};
+
 export default function AddProductScreen({ navigation }) {
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -55,13 +63,13 @@ export default function AddProductScreen({ navigation }) {
 
   const handleCreate = async () => {
     if (!name.trim() || !description.trim() || !price || !category) {
-      Alert.alert('Error', 'Please fill in name, description, price, and category');
+      Alert.alert(t('error'), t('fillProductFields'));
       return;
     }
 
     const priceNum = Number(price);
     if (isNaN(priceNum) || priceNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid price');
+      Alert.alert(t('error'), t('validPrice'));
       return;
     }
 
@@ -73,7 +81,7 @@ export default function AddProductScreen({ navigation }) {
         price: priceNum,
         category,
         neighborhood,
-        tags: tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+        tags: tags ? tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [],
         acceptsOffers,
         acceptsCustomOrders,
       };
@@ -98,11 +106,11 @@ export default function AddProductScreen({ navigation }) {
         }
       }
 
-      Alert.alert('Success', 'Product listed!', [
-        { text: 'OK', onPress: () => navigation.navigate('ManageShop') },
+      Alert.alert(t('successMsg'), t('productListed'), [
+        { text: t('ok'), onPress: () => navigation.navigate('ManageShop') },
       ]);
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to create product');
+      Alert.alert(t('error'), error.message || 'Failed to create product');
     } finally {
       setLoading(false);
     }
@@ -112,7 +120,7 @@ export default function AddProductScreen({ navigation }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Images */}
       <View style={styles.field}>
-        <Text style={styles.label}>Photos (up to 5)</Text>
+        <Text style={styles.label}>{t('photosUpTo5')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.imagesRow}>
             {images.map((uri, index) => (
@@ -129,7 +137,7 @@ export default function AddProductScreen({ navigation }) {
             {images.length < 5 && (
               <TouchableOpacity style={styles.addImage} onPress={pickImage}>
                 <Ionicons name="camera" size={28} color={colors.terracotta} />
-                <Text style={styles.addImageText}>Add Photo</Text>
+                <Text style={styles.addImageText}>{t('addPhoto')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -138,34 +146,40 @@ export default function AddProductScreen({ navigation }) {
 
       {/* Name */}
       <View style={styles.field}>
-        <Text style={styles.label}>Product Name *</Text>
+        <Text style={styles.label}>{`${t('productNameLabel')} *`}</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
-          placeholder="What are you selling?"
+          placeholder={t('whatAreYouSelling')}
           placeholderTextColor={colors.textLight}
         />
       </View>
 
       {/* Description */}
       <View style={styles.field}>
-        <Text style={styles.label}>Description *</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Describe your product..."
-          placeholderTextColor={colors.textLight}
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-        />
+        <Text style={styles.label}>{`${t('description')} *`}</Text>
+        <View style={styles.textAreaWrapper}>
+          <View style={styles.innerShadowTop} />
+          <View style={styles.innerShadowLeft} />
+          <View style={styles.innerShadowRight} />
+          <View style={styles.innerShadowBottom} />
+          <TextInput
+            style={[styles.input, styles.textArea, styles.textAreaInput]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder={t('describeYourProduct')}
+            placeholderTextColor={colors.textLight}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
       </View>
 
       {/* Price */}
       <View style={styles.field}>
-        <Text style={styles.label}>Price (JOD) *</Text>
+        <Text style={styles.label}>{`${t('priceJOD')} *`}</Text>
         <TextInput
           style={styles.input}
           value={price}
@@ -178,7 +192,7 @@ export default function AddProductScreen({ navigation }) {
 
       {/* Category */}
       <View style={styles.field}>
-        <Text style={styles.label}>Category *</Text>
+        <Text style={styles.label}>{`${t('categoryLabel')} *`}</Text>
         <View style={styles.chipGrid}>
           {CATEGORIES.map((cat) => (
             <TouchableOpacity
@@ -187,7 +201,7 @@ export default function AddProductScreen({ navigation }) {
               onPress={() => setCategory(cat)}
             >
               <Text style={[styles.chipText, category === cat && styles.chipTextActive]}>
-                {cat.replace('-', ' ')}
+                {t(CATEGORY_LABELS[cat])}
               </Text>
             </TouchableOpacity>
           ))}
@@ -196,7 +210,7 @@ export default function AddProductScreen({ navigation }) {
 
       {/* Tags */}
       <View style={styles.field}>
-        <Text style={styles.label}>Tags (comma separated)</Text>
+        <Text style={styles.label}>{t('tagsLabel')}</Text>
         <TextInput
           style={styles.input}
           value={tags}
@@ -208,7 +222,7 @@ export default function AddProductScreen({ navigation }) {
 
       {/* Neighborhood */}
       <View style={styles.field}>
-        <Text style={styles.label}>Neighborhood</Text>
+        <Text style={styles.label}>{t('neighborhood')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.chipRow}>
             {NEIGHBORHOODS.map((n) => (
@@ -228,7 +242,7 @@ export default function AddProductScreen({ navigation }) {
 
       {/* Options */}
       <View style={styles.field}>
-        <Text style={styles.label}>Options</Text>
+        <Text style={styles.label}>{t('optionsLabel')}</Text>
         <TouchableOpacity
           style={styles.toggle}
           onPress={() => setAcceptsOffers(!acceptsOffers)}
@@ -238,7 +252,7 @@ export default function AddProductScreen({ navigation }) {
             size={22}
             color={acceptsOffers ? colors.terracotta : colors.textLight}
           />
-          <Text style={styles.toggleText}>Accept offers</Text>
+          <Text style={styles.toggleText}>{t('acceptOffersOption')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.toggle}
@@ -249,7 +263,7 @@ export default function AddProductScreen({ navigation }) {
             size={22}
             color={acceptsCustomOrders ? colors.terracotta : colors.textLight}
           />
-          <Text style={styles.toggleText}>Accept custom orders</Text>
+          <Text style={styles.toggleText}>{t('acceptCustomOrdersOption')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -262,7 +276,7 @@ export default function AddProductScreen({ navigation }) {
         {loading ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text style={styles.submitText}>List Product</Text>
+          <Text style={styles.submitText}>{t('listProduct')}</Text>
         )}
       </TouchableOpacity>
     </ScrollView>
@@ -299,6 +313,57 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 100,
+  },
+  textAreaWrapper: {
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    backgroundColor: '#F2EFEB',
+    borderWidth: 1.5,
+    borderTopColor: '#C8C2BA',
+    borderLeftColor: '#C8C2BA',
+    borderBottomColor: '#E0DCD7',
+    borderRightColor: '#E0DCD7',
+  },
+  textAreaInput: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: 0,
+  },
+  innerShadowTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 8,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    zIndex: 1,
+  },
+  innerShadowLeft: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: 6,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    zIndex: 1,
+  },
+  innerShadowRight: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 4,
+    backgroundColor: 'rgba(0,0,0,0.015)',
+    zIndex: 1,
+  },
+  innerShadowBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    zIndex: 1,
   },
   imagesRow: {
     flexDirection: 'row',

@@ -15,8 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { adminAPI } from '../../services/api';
 import { getImageUrl } from '../../utils/imageUrl';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function AdminProductsScreen({ navigation }) {
+  const { t } = useLanguage();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -63,9 +65,9 @@ export default function AdminProductsScreen({ navigation }) {
     if (Platform.OS === 'web') {
       if (window.confirm(`Delete product "${product.name}"?`)) doDelete();
     } else {
-      Alert.alert('Delete Product', `Delete "${product.name}"?`, [
+      Alert.alert(t('deleteProduct'), `Delete "${product.name}"?`, [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: doDelete },
+        { text: t('deleteProduct'), style: 'destructive', onPress: doDelete },
       ]);
     }
   };
@@ -118,12 +120,12 @@ export default function AdminProductsScreen({ navigation }) {
                   onPress={() => navigation.navigate('EditProduct', { productId: item._id })}
                 >
                   <Ionicons name="create-outline" size={16} color={colors.olive} />
-                  <Text style={styles.actionText}>Edit</Text>
+                  <Text style={styles.actionText}>{t('edit')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.actionBtn} onPress={() => toggleAvailable(item)}>
                   <Ionicons name={item.isAvailable ? 'eye-off-outline' : 'eye-outline'} size={16} color={colors.golden} />
-                  <Text style={styles.actionText}>{item.isAvailable ? 'Hide' : 'Show'}</Text>
+                  <Text style={styles.actionText}>{item.isAvailable ? t('hide') : t('show')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => confirmDelete(item)}>
@@ -133,7 +135,7 @@ export default function AdminProductsScreen({ navigation }) {
             </View>
           )}
           ListEmptyComponent={
-            <Text style={styles.empty}>No products found</Text>
+            <Text style={styles.empty}>{t('noProducts')}</Text>
           }
         />
       )}

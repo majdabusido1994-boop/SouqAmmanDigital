@@ -13,10 +13,11 @@ import {
 } from 'react-native';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
-import GoogleSignInButton from '../../components/GoogleSignInButton';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,18 +26,18 @@ export default function RegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('error'), t('fillAllFields'));
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert(t('error'), t('passwordMinLength'));
       return;
     }
     setLoading(true);
     try {
       await register(name.trim(), email.trim().toLowerCase(), password, role);
     } catch (error) {
-      Alert.alert('Registration Failed', error.message);
+      Alert.alert(t('error'), error.message);
     } finally {
       setLoading(false);
     }
@@ -50,8 +51,8 @@ export default function RegisterScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.inner} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Join the Souq</Text>
-          <Text style={styles.subtitle}>Create your account to start exploring</Text>
+          <Text style={styles.title}>{t('souqAmman')} {t('digital')}</Text>
+          <Text style={styles.subtitle}>{t('yourLocalBazaar')}</Text>
         </View>
 
         {/* Role Selector */}
@@ -62,7 +63,7 @@ export default function RegisterScreen({ navigation }) {
           >
             <Text style={[styles.roleEmoji]}>🛍️</Text>
             <Text style={[styles.roleText, role === 'buyer' && styles.roleTextActive]}>
-              I want to buy
+              {t('wantToBuy')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -71,7 +72,7 @@ export default function RegisterScreen({ navigation }) {
           >
             <Text style={[styles.roleEmoji]}>🏪</Text>
             <Text style={[styles.roleText, role === 'seller' && styles.roleTextActive]}>
-              I want to sell
+              {t('wantToSell')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -79,23 +80,23 @@ export default function RegisterScreen({ navigation }) {
         {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Full Name</Text>
+            <Text style={styles.label}>{t('name')}</Text>
             <TextInput
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="Your name"
+              placeholder={t('namePlaceholder')}
               placeholderTextColor={colors.textLight}
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>{t('email')}</Text>
             <TextInput
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="your@email.com"
+              placeholder={t('emailPlaceholder')}
               placeholderTextColor={colors.textLight}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -103,12 +104,12 @@ export default function RegisterScreen({ navigation }) {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t('password')}</Text>
             <TextInput
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder="At least 6 characters"
+              placeholder={t('createPassword')}
               placeholderTextColor={colors.textLight}
               secureTextEntry
             />
@@ -122,26 +123,16 @@ export default function RegisterScreen({ navigation }) {
             {loading ? (
               <ActivityIndicator color={colors.white} />
             ) : (
-              <Text style={styles.buttonText}>Create Account</Text>
+              <Text style={styles.buttonText}>{t('createAccount')}</Text>
             )}
           </TouchableOpacity>
-
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Google Sign-In */}
-          <GoogleSignInButton />
 
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => navigation.navigate('Login')}
           >
             <Text style={styles.linkText}>
-              Already have an account? <Text style={styles.linkBold}>Sign In</Text>
+              {t('hasAccount')} <Text style={styles.linkBold}>{t('signIn')}</Text>
             </Text>
           </TouchableOpacity>
         </View>

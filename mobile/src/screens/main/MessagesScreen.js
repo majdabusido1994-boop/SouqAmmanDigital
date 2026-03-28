@@ -13,9 +13,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { messagesAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function MessagesScreen({ navigation }) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -69,7 +71,7 @@ export default function MessagesScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Messages</Text>
+        <Text style={styles.title}>{t('messages')}</Text>
       </View>
 
       <FlatList
@@ -80,7 +82,9 @@ export default function MessagesScreen({ navigation }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.terracotta} />
         }
         renderItem={({ item }) => {
+          if (!item.lastMessage) return null;
           const otherUser = getOtherUser(item.lastMessage);
+          if (!otherUser) return null;
           return (
             <TouchableOpacity
               style={styles.conversationItem}
@@ -107,8 +111,8 @@ export default function MessagesScreen({ navigation }) {
                 <View style={styles.messageBottom}>
                   <Text style={styles.lastMessage} numberOfLines={1}>
                     {item.lastMessage.messageType === 'offer'
-                      ? `Offer: ${item.lastMessage.offerAmount} JOD`
-                      : item.lastMessage.text}
+                      ? `${t('offer')}: ${item.lastMessage.offerAmount} JOD`
+                      : item.lastMessage.text || ''}
                   </Text>
                   {item.unreadCount > 0 && (
                     <View style={styles.unreadBadge}>
@@ -123,9 +127,9 @@ export default function MessagesScreen({ navigation }) {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="chatbubbles-outline" size={48} color={colors.textLight} />
-            <Text style={styles.emptyText}>No messages yet</Text>
+            <Text style={styles.emptyText}>{t('noMessagesYet')}</Text>
             <Text style={styles.emptySubtext}>
-              Browse products and start a conversation!
+              {t('browseAndChat')}
             </Text>
           </View>
         }

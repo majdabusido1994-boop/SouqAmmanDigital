@@ -74,6 +74,20 @@ router.get('/:userId', auth, async (req, res) => {
 router.post('/:userId', auth, async (req, res) => {
   try {
     const { text, productId, messageType, offerAmount } = req.body;
+
+    if ((!text || !text.trim()) && messageType !== 'offer') {
+      return res.status(400).json({ message: 'Message text is required' });
+    }
+
+    if (messageType === 'offer' && (!offerAmount || offerAmount <= 0)) {
+      return res.status(400).json({ message: 'Valid offer amount is required' });
+    }
+
+    // Prevent messaging yourself
+    if (req.params.userId === req.user._id.toString()) {
+      return res.status(400).json({ message: 'Cannot send a message to yourself' });
+    }
+
     const conversationId = Message.getConversationId(req.user._id, req.params.userId);
 
     const message = await Message.create({

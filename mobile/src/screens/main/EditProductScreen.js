@@ -15,11 +15,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import { productsAPI } from '../../services/api';
 import { getImageUrl } from '../../utils/imageUrl';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 const CATEGORIES = [
   'fashion', 'accessories', 'home-decor', 'food',
   'art', 'handmade', 'beauty', 'services', 'other',
 ];
+
+const CATEGORY_LABELS = {
+  'fashion': 'fashion', 'accessories': 'accessories', 'home-decor': 'homeDecor',
+  'food': 'food', 'art': 'art', 'handmade': 'handmade',
+  'beauty': 'beauty', 'services': 'services', 'other': 'other',
+};
 
 const NEIGHBORHOODS = [
   'Abdoun', 'Jabal Amman', 'Rainbow Street', 'Sweifieh',
@@ -27,6 +34,7 @@ const NEIGHBORHOODS = [
 ];
 
 export default function EditProductScreen({ route, navigation }) {
+  const { t } = useLanguage();
   const { productId } = route.params;
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -91,13 +99,13 @@ export default function EditProductScreen({ route, navigation }) {
 
   const handleSave = async () => {
     if (!name.trim() || !description.trim() || !price || !category) {
-      Alert.alert('Error', 'Please fill in name, description, price, and category');
+      Alert.alert(t('error'), t('fillProductFields'));
       return;
     }
 
     const priceNum = Number(price);
     if (isNaN(priceNum) || priceNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid price');
+      Alert.alert(t('error'), t('validPrice'));
       return;
     }
 
@@ -132,11 +140,11 @@ export default function EditProductScreen({ route, navigation }) {
         }
       }
 
-      Alert.alert('Success', 'Product updated!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert(t('successMsg'), t('productUpdated'), [
+        { text: t('ok'), onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to update product');
+      Alert.alert(t('error'), error.message || 'Failed to update product');
     } finally {
       setSaving(false);
     }
@@ -144,21 +152,21 @@ export default function EditProductScreen({ route, navigation }) {
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Product',
-      'Are you sure you want to delete this product? This cannot be undone.',
+      t('deleteProduct'),
+      t('cannotBeUndone'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await productsAPI.delete(productId);
-              Alert.alert('Deleted', 'Product has been removed.', [
-                { text: 'OK', onPress: () => navigation.goBack() },
+              Alert.alert(t('deleted'), t('productRemoved'), [
+                { text: t('ok'), onPress: () => navigation.goBack() },
               ]);
             } catch (error) {
-              Alert.alert('Error', error.message || 'Failed to delete product');
+              Alert.alert(t('error'), error.message || 'Failed to delete product');
             }
           },
         },
@@ -180,7 +188,7 @@ export default function EditProductScreen({ route, navigation }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Images */}
       <View style={styles.field}>
-        <Text style={styles.label}>Photos ({totalImages}/5)</Text>
+        <Text style={styles.label}>{t('photos')} ({totalImages}/5)</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.imagesRow}>
             {existingImages.map((img, index) => (
@@ -211,7 +219,7 @@ export default function EditProductScreen({ route, navigation }) {
             {totalImages < 5 && (
               <TouchableOpacity style={styles.addImage} onPress={pickImage}>
                 <Ionicons name="camera" size={28} color={colors.terracotta} />
-                <Text style={styles.addImageText}>Add Photo</Text>
+                <Text style={styles.addImageText}>{t('addPhoto')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -220,34 +228,40 @@ export default function EditProductScreen({ route, navigation }) {
 
       {/* Name */}
       <View style={styles.field}>
-        <Text style={styles.label}>Product Name *</Text>
+        <Text style={styles.label}>{t('productNameLabel')} *</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
-          placeholder="What are you selling?"
+          placeholder={t('whatAreYouSelling')}
           placeholderTextColor={colors.textLight}
         />
       </View>
 
       {/* Description */}
       <View style={styles.field}>
-        <Text style={styles.label}>Description *</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Describe your product..."
-          placeholderTextColor={colors.textLight}
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-        />
+        <Text style={styles.label}>{t('description')} *</Text>
+        <View style={styles.textAreaWrapper}>
+          <View style={styles.innerShadowTop} />
+          <View style={styles.innerShadowLeft} />
+          <View style={styles.innerShadowRight} />
+          <View style={styles.innerShadowBottom} />
+          <TextInput
+            style={[styles.input, styles.textArea, styles.textAreaInput]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder={t('describeYourProduct')}
+            placeholderTextColor={colors.textLight}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
       </View>
 
       {/* Price */}
       <View style={styles.field}>
-        <Text style={styles.label}>Price (JOD) *</Text>
+        <Text style={styles.label}>{t('priceJOD')} *</Text>
         <TextInput
           style={styles.input}
           value={price}
@@ -260,7 +274,7 @@ export default function EditProductScreen({ route, navigation }) {
 
       {/* Category */}
       <View style={styles.field}>
-        <Text style={styles.label}>Category *</Text>
+        <Text style={styles.label}>{t('categoryLabel')} *</Text>
         <View style={styles.chipGrid}>
           {CATEGORIES.map((cat) => (
             <TouchableOpacity
@@ -269,7 +283,7 @@ export default function EditProductScreen({ route, navigation }) {
               onPress={() => setCategory(cat)}
             >
               <Text style={[styles.chipText, category === cat && styles.chipTextActive]}>
-                {cat.replace('-', ' ')}
+                {t(CATEGORY_LABELS[cat])}
               </Text>
             </TouchableOpacity>
           ))}
@@ -278,7 +292,7 @@ export default function EditProductScreen({ route, navigation }) {
 
       {/* Tags */}
       <View style={styles.field}>
-        <Text style={styles.label}>Tags (comma separated)</Text>
+        <Text style={styles.label}>{t('tagsLabel')}</Text>
         <TextInput
           style={styles.input}
           value={tags}
@@ -290,7 +304,7 @@ export default function EditProductScreen({ route, navigation }) {
 
       {/* Neighborhood */}
       <View style={styles.field}>
-        <Text style={styles.label}>Neighborhood</Text>
+        <Text style={styles.label}>{t('neighborhood')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.chipRow}>
             {NEIGHBORHOODS.map((n) => (
@@ -310,7 +324,7 @@ export default function EditProductScreen({ route, navigation }) {
 
       {/* Options */}
       <View style={styles.field}>
-        <Text style={styles.label}>Options</Text>
+        <Text style={styles.label}>{t('optionsLabel')}</Text>
         <TouchableOpacity
           style={styles.toggle}
           onPress={() => setAcceptsOffers(!acceptsOffers)}
@@ -320,7 +334,7 @@ export default function EditProductScreen({ route, navigation }) {
             size={22}
             color={acceptsOffers ? colors.terracotta : colors.textLight}
           />
-          <Text style={styles.toggleText}>Accept offers</Text>
+          <Text style={styles.toggleText}>{t('acceptOffersOption')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.toggle}
@@ -331,7 +345,7 @@ export default function EditProductScreen({ route, navigation }) {
             size={22}
             color={acceptsCustomOrders ? colors.terracotta : colors.textLight}
           />
-          <Text style={styles.toggleText}>Accept custom orders</Text>
+          <Text style={styles.toggleText}>{t('acceptCustomOrdersOption')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -344,14 +358,14 @@ export default function EditProductScreen({ route, navigation }) {
         {saving ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text style={styles.submitText}>Save Changes</Text>
+          <Text style={styles.submitText}>{t('saveChanges')}</Text>
         )}
       </TouchableOpacity>
 
       {/* Delete */}
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
         <Ionicons name="trash-outline" size={18} color={colors.error} />
-        <Text style={styles.deleteText}>Delete Product</Text>
+        <Text style={styles.deleteText}>{t('deleteProduct')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -393,6 +407,57 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 100,
+  },
+  textAreaWrapper: {
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    backgroundColor: '#F2EFEB',
+    borderWidth: 1.5,
+    borderTopColor: '#C8C2BA',
+    borderLeftColor: '#C8C2BA',
+    borderBottomColor: '#E0DCD7',
+    borderRightColor: '#E0DCD7',
+  },
+  textAreaInput: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: 0,
+  },
+  innerShadowTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 8,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    zIndex: 1,
+  },
+  innerShadowLeft: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: 6,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    zIndex: 1,
+  },
+  innerShadowRight: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 4,
+    backgroundColor: 'rgba(0,0,0,0.015)',
+    zIndex: 1,
+  },
+  innerShadowBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    zIndex: 1,
   },
   imagesRow: {
     flexDirection: 'row',

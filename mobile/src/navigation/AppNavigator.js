@@ -1,8 +1,11 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../i18n/LanguageContext';
 import { colors } from '../theme';
 import SplashScreen from '../screens/SplashScreen';
 
@@ -65,34 +68,93 @@ const screenOptions = {
   animation: 'slide_from_right',
 };
 
+const TAB_ICONS = {
+  Home: ['home', 'home-outline'],
+  Search: ['search', 'search-outline'],
+  Orders: ['receipt', 'receipt-outline'],
+  Messages: ['chatbubbles', 'chatbubbles-outline'],
+  Profile: ['person', 'person-outline'],
+};
+
+const TAB_LABELS = {
+  Home: 'home',
+  Search: 'search',
+  Orders: 'orders',
+  Messages: 'messages',
+  Profile: 'profile',
+};
+
+function CustomTabBar({ state, navigation }) {
+  const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
+  const bottomPadding = Math.max(insets.bottom, Platform.OS === 'android' ? 8 : 5);
+
+  return (
+    <View style={[tabBarStyles.container, { paddingBottom: bottomPadding }]}>
+      {state.routes.map((route, index) => {
+        const isFocused = state.index === index;
+        const [activeIcon, inactiveIcon] = TAB_ICONS[route.name] || ['ellipse', 'ellipse-outline'];
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={() => {
+              if (!isFocused) {
+                navigation.navigate(route.name);
+              }
+            }}
+            style={tabBarStyles.tab}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isFocused ? activeIcon : inactiveIcon}
+              size={24}
+              color={isFocused ? colors.terracotta : colors.textLight}
+            />
+            <Text style={[
+              tabBarStyles.label,
+              { color: isFocused ? colors.terracotta : colors.textLight },
+            ]}>
+              {t(TAB_LABELS[route.name])}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+const tabBarStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E8D4BD',
+    paddingTop: 8,
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+});
+
 function HomeTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
-          else if (route.name === 'Search') iconName = focused ? 'search' : 'search-outline';
-          else if (route.name === 'Orders') iconName = focused ? 'receipt' : 'receipt-outline';
-          else if (route.name === 'Messages') iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
-          else if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: colors.terracotta,
-        tabBarInactiveTintColor: colors.textLight,
-        tabBarStyle: {
-          backgroundColor: colors.white,
-          borderTopColor: colors.border,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '500',
-        },
-        headerShown: false,
-      })}
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
@@ -105,6 +167,7 @@ function HomeTabs() {
 
 export default function AppNavigator() {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
 
   if (loading) return <SplashScreen />;
 
@@ -122,21 +185,21 @@ export default function AppNavigator() {
           {/* Generic screens */}
           <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: '', headerTransparent: true, headerTintColor: colors.terracottaDark || '#A55D2B' }} />
           <Stack.Screen name="ShopDetail" component={ShopDetailScreen} options={{ title: '', headerTransparent: true, headerTintColor: colors.terracottaDark || '#A55D2B' }} />
-          <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
-          <Stack.Screen name="CreateShop" component={CreateShopScreen} options={{ title: 'Create Your Shop' }} />
-          <Stack.Screen name="AddProduct" component={AddProductScreen} options={{ title: 'Add Product' }} />
-          <Stack.Screen name="CustomOrder" component={CustomOrderScreen} options={{ title: 'Custom Order' }} />
-          <Stack.Screen name="ManageShop" component={ManageShopScreen} options={{ title: 'My Shop' }} />
-          <Stack.Screen name="EditProduct" component={EditProductScreen} options={{ title: 'Edit Product' }} />
-          <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
-          <Stack.Screen name="NearMe" component={NearMeScreen} options={{ title: 'Near Me' }} />
+          <Stack.Screen name="Chat" component={ChatScreen} options={{ title: t('chat') }} />
+          <Stack.Screen name="CreateShop" component={CreateShopScreen} options={{ title: t('createYourShop') }} />
+          <Stack.Screen name="AddProduct" component={AddProductScreen} options={{ title: t('addProduct') }} />
+          <Stack.Screen name="CustomOrder" component={CustomOrderScreen} options={{ title: t('customOrder') }} />
+          <Stack.Screen name="ManageShop" component={ManageShopScreen} options={{ title: t('myShop') }} />
+          <Stack.Screen name="EditProduct" component={EditProductScreen} options={{ title: t('editProductTitle') }} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: t('editProfileTitle') }} />
+          <Stack.Screen name="NearMe" component={NearMeScreen} options={{ title: t('nearMe') }} />
 
           {/* Admin screens */}
-          <Stack.Screen name="AdminPanel" component={AdminPanelScreen} options={{ title: 'Admin Panel' }} />
-          <Stack.Screen name="AdminUsers" component={AdminUsersScreen} options={{ title: 'Manage Users' }} />
-          <Stack.Screen name="AdminShops" component={AdminShopsScreen} options={{ title: 'Manage Shops' }} />
-          <Stack.Screen name="AdminProducts" component={AdminProductsScreen} options={{ title: 'Manage Products' }} />
-          <Stack.Screen name="AdminMessages" component={AdminMessagesScreen} options={{ title: 'Messages' }} />
+          <Stack.Screen name="AdminPanel" component={AdminPanelScreen} options={{ title: t('adminPanel') }} />
+          <Stack.Screen name="AdminUsers" component={AdminUsersScreen} options={{ title: t('manageUsers') }} />
+          <Stack.Screen name="AdminShops" component={AdminShopsScreen} options={{ title: t('manageShops') }} />
+          <Stack.Screen name="AdminProducts" component={AdminProductsScreen} options={{ title: t('manageProducts') }} />
+          <Stack.Screen name="AdminMessages" component={AdminMessagesScreen} options={{ title: t('manageMessages') }} />
 
           {/* Fashion screens */}
           <Stack.Screen

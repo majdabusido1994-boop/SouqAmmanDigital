@@ -10,8 +10,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { adminAPI } from '../../services/api';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function AdminPanelScreen({ navigation }) {
+  const { t } = useLanguage();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,30 +42,38 @@ export default function AdminPanelScreen({ navigation }) {
 
   const sections = [
     {
-      title: 'Users',
+      key: 'users',
+      title: t('manageUsers'),
       icon: 'people',
       count: stats?.users || 0,
+      countLabel: t('totalUsers'),
       color: colors.terracotta,
       screen: 'AdminUsers',
     },
     {
-      title: 'Shops',
+      key: 'shops',
+      title: t('manageShops'),
       icon: 'storefront',
       count: stats?.shops || 0,
+      countLabel: t('totalShops'),
       color: colors.olive,
       screen: 'AdminShops',
     },
     {
-      title: 'Products',
+      key: 'products',
+      title: t('manageProducts'),
       icon: 'pricetag',
       count: stats?.products || 0,
+      countLabel: t('totalProducts'),
       color: colors.teal,
       screen: 'AdminProducts',
     },
     {
-      title: 'Messages',
+      key: 'messages',
+      title: t('manageMessages'),
       icon: 'chatbubbles',
       count: stats?.messages || 0,
+      countLabel: t('totalMessages'),
       color: colors.golden,
       screen: 'AdminMessages',
     },
@@ -73,14 +83,14 @@ export default function AdminPanelScreen({ navigation }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Ionicons name="shield-checkmark" size={32} color={colors.terracotta} />
-        <Text style={styles.title}>Super Admin</Text>
-        <Text style={styles.subtitle}>Full control panel</Text>
+        <Text style={styles.title}>{t('dashboard')}</Text>
+        <Text style={styles.subtitle}>{t('dashboard')}</Text>
       </View>
 
       <View style={styles.grid}>
         {sections.map((section) => (
           <TouchableOpacity
-            key={section.title}
+            key={section.key}
             style={styles.card}
             onPress={() => navigation.navigate(section.screen)}
             activeOpacity={0.8}

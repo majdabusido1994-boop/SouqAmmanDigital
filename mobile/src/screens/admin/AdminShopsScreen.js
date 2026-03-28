@@ -15,8 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { adminAPI } from '../../services/api';
 import { getImageUrl } from '../../utils/imageUrl';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function AdminShopsScreen({ navigation }) {
+  const { t } = useLanguage();
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -70,9 +72,9 @@ export default function AdminShopsScreen({ navigation }) {
     if (Platform.OS === 'web') {
       if (window.confirm(`Delete shop "${shop.name}" and all its products?`)) doDelete();
     } else {
-      Alert.alert('Delete Shop', `Delete "${shop.name}" and all its products?`, [
+      Alert.alert(t('deleteShop'), `Delete "${shop.name}" and all its products?`, [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: doDelete },
+        { text: t('deleteShop'), style: 'destructive', onPress: doDelete },
       ]);
     }
   };
@@ -124,12 +126,12 @@ export default function AdminShopsScreen({ navigation }) {
               <View style={styles.cardActions}>
                 <TouchableOpacity style={styles.actionBtn} onPress={() => toggleVerify(item)}>
                   <Ionicons name={item.isVerified ? 'close-circle-outline' : 'checkmark-circle-outline'} size={16} color={colors.teal} />
-                  <Text style={styles.actionText}>{item.isVerified ? 'Unverify' : 'Verify'}</Text>
+                  <Text style={styles.actionText}>{item.isVerified ? t('unverify') : t('verify')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.actionBtn} onPress={() => toggleActive(item)}>
                   <Ionicons name={item.isActive ? 'eye-off-outline' : 'eye-outline'} size={16} color={colors.golden} />
-                  <Text style={styles.actionText}>{item.isActive ? 'Deactivate' : 'Activate'}</Text>
+                  <Text style={styles.actionText}>{item.isActive ? t('deactivate') : t('activate')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => confirmDelete(item)}>
@@ -139,7 +141,7 @@ export default function AdminShopsScreen({ navigation }) {
             </View>
           )}
           ListEmptyComponent={
-            <Text style={styles.empty}>No shops found</Text>
+            <Text style={styles.empty}>{t('noShops')}</Text>
           }
         />
       )}

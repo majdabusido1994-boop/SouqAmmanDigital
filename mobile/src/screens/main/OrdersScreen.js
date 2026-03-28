@@ -9,12 +9,14 @@ import {
   RefreshControl,
   Image,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { ordersAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUrl';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 const STATUS_CONFIG = {
   pending: { label: 'Pending', color: '#F5A623', icon: 'time-outline' },
@@ -27,12 +29,13 @@ const STATUS_CONFIG = {
 
 export default function OrdersScreen({ navigation }) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState('buyer'); // buyer | seller
 
-  const isSeller = user?.role === 'seller';
+  const isSeller = user?.role === 'seller' || user?.role === 'superadmin';
 
   useEffect(() => {
     fetchOrders();
@@ -52,24 +55,33 @@ export default function OrdersScreen({ navigation }) {
 
   const handleUpdateStatus = (order, newStatus) => {
     const config = STATUS_CONFIG[newStatus];
-    Alert.alert(
-      `Mark as ${config.label}?`,
-      `Update order #${order._id.slice(-6)} to "${config.label}"`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Update',
-          onPress: async () => {
-            try {
-              await ordersAPI.updateStatus(order._id, { status: newStatus });
-              fetchOrders();
-            } catch (error) {
-              Alert.alert('Error', error.message);
-            }
-          },
-        },
-      ]
-    );
+    const doUpdate = async () => {
+      try {
+        await ordersAPI.updateStatus(order._id, { status: newStatus });
+        fetchOrders();
+      } catch (error) {
+        if (Platform.OS === 'web') {
+          window.alert(error.message);
+        } else {
+          Alert.alert(t('error'), error.message);
+        }
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(`${t('markAs')} ${t(newStatus)} - #${order._id.slice(-6)}?`)) {
+        doUpdate();
+      }
+    } else {
+      Alert.alert(
+        `${t('markAs')} ${t(newStatus)}?`,
+        `${t('update')} #${order._id.slice(-6)} - ${t(newStatus)}`,
+        [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('update'), onPress: doUpdate },
+        ]
+      );
+    }
   };
 
   const getNextStatus = (current) => {
@@ -95,7 +107,7 @@ export default function OrdersScreen({ navigation }) {
           </View>
           <View style={[styles.statusBadge, { backgroundColor: status.color + '20' }]}>
             <Ionicons name={status.icon} size={14} color={status.color} />
-            <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
+            <Text style={[styles.statusText, { color: status.color }]}>{t(order.status)}</Text>
           </View>
         </View>
 
@@ -122,7 +134,7 @@ export default function OrdersScreen({ navigation }) {
         ))}
 
         <View style={styles.orderFooter}>
-          <Text style={styles.totalLabel}>Total:</Text>
+          <Text style={styles.totalLabel}>{t('total')}:</Text>
           <Text style={styles.totalPrice}>{order.total} JOD</Text>
         </View>
 
@@ -134,8 +146,8 @@ export default function OrdersScreen({ navigation }) {
             color={colors.textLight}
           />
           <Text style={styles.deliveryText}>
-            {order.deliveryMethod === 'delivery' ? 'Delivery' : 'Pickup'}
-            {order.paymentMethod === 'cliq' ? ' - CliQ Payment' : ' - Cash'}
+            {order.deliveryMethod === 'delivery' ? t('delivery') : t('pickup')}
+            {order.paymentMethod === 'cliq' ? ` - ${t('cliqPayment')}` : ` - ${t('cash')}`}
           </Text>
         </View>
 
@@ -146,7 +158,7 @@ export default function OrdersScreen({ navigation }) {
             onPress={() => handleUpdateStatus(order, nextStatus)}
           >
             <Ionicons name={STATUS_CONFIG[nextStatus].icon} size={16} color={colors.white} />
-            <Text style={styles.actionBtnText}>Mark as {STATUS_CONFIG[nextStatus].label}</Text>
+            <Text style={styles.actionBtnText}>{t('markAs')} {t(nextStatus)}</Text>
           </TouchableOpacity>
         )}
 
@@ -156,7 +168,7 @@ export default function OrdersScreen({ navigation }) {
             style={styles.cancelBtn}
             onPress={() => handleUpdateStatus(order, 'cancelled')}
           >
-            <Text style={styles.cancelBtnText}>Cancel Order</Text>
+            <Text style={styles.cancelBtnText}>{t('cancelOrder')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -174,7 +186,7 @@ export default function OrdersScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Orders</Text>
+        <Text style={styles.title}>{t('orders')}</Text>
       </View>
 
       {/* Tabs */}
@@ -184,13 +196,13 @@ export default function OrdersScreen({ navigation }) {
             style={[styles.tab, tab === 'buyer' && styles.tabActive]}
             onPress={() => setTab('buyer')}
           >
-            <Text style={[styles.tabText, tab === 'buyer' && styles.tabTextActive]}>My Orders</Text>
+            <Text style={[styles.tabText, tab === 'buyer' && styles.tabTextActive]}>{t('myOrders')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, tab === 'seller' && styles.tabActive]}
             onPress={() => setTab('seller')}
           >
-            <Text style={[styles.tabText, tab === 'seller' && styles.tabTextActive]}>Received</Text>
+            <Text style={[styles.tabText, tab === 'seller' && styles.tabTextActive]}>{t('received')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -210,11 +222,11 @@ export default function OrdersScreen({ navigation }) {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="receipt-outline" size={48} color={colors.textLight} />
-            <Text style={styles.emptyText}>No orders yet</Text>
+            <Text style={styles.emptyText}>{t('noOrdersYet')}</Text>
             <Text style={styles.emptySubtext}>
               {tab === 'buyer'
-                ? 'Your orders will appear here'
-                : 'Orders from customers will appear here'}
+                ? t('ordersAppearHere')
+                : t('customerOrdersAppear')}
             </Text>
           </View>
         }

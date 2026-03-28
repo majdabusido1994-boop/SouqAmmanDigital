@@ -21,14 +21,19 @@ router.get('/', async (req, res) => {
       limit = 20,
     } = req.query;
 
+    const cappedLimit = Math.min(Math.max(Number(limit) || 20, 1), 50);
+    const pageNum = Math.max(Number(page) || 1, 1);
     const query = { isAvailable: true };
 
     if (category) query.category = category;
     if (neighborhood) query.neighborhood = neighborhood;
     if (minPrice || maxPrice) {
       query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+      const min = Number(minPrice);
+      const max = Number(maxPrice);
+      if (minPrice && !isNaN(min) && min >= 0) query.price.$gte = min;
+      if (maxPrice && !isNaN(max) && max >= 0) query.price.$lte = max;
+      if (Object.keys(query.price).length === 0) delete query.price;
     }
     if (search) {
       query.$text = { $search: search };
@@ -43,15 +48,15 @@ router.get('/', async (req, res) => {
       .populate('shop', 'name profileImage')
       .populate('seller', 'name')
       .sort(sortOption)
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
+      .skip((pageNum - 1) * cappedLimit)
+      .limit(cappedLimit);
 
     const total = await Product.countDocuments(query);
 
     res.json({
       products,
-      totalPages: Math.ceil(total / limit),
-      currentPage: Number(page),
+      totalPages: Math.ceil(total / cappedLimit),
+      currentPage: pageNum,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -80,11 +85,21 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'You need to create a shop first' });
     }
 
-    // Remove any client-side image URIs (they'll be uploaded separately)
-    const { images, ...productData } = req.body;
+    const { images, name, description, price, category, ...restData } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: 'Product name is required' });
+    }
+    if (price === undefined || isNaN(Number(price)) || Number(price) < 0) {
+      return res.status(400).json({ message: 'Valid price is required' });
+    }
 
     const product = await Product.create({
-      ...productData,
+      name: name.trim(),
+      description: description?.trim(),
+      price: Number(price),
+      category,
+      ...restData,
       shop: shop._id,
       seller: req.user._id,
     });
@@ -105,7 +120,13 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    const allowedFields = ['name', 'description', 'price', 'category', 'neighborhood', 'condition', 'isAvailable', 'tags'];
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) updateData[key] = req.body[key];
+    }
+
+    const updated = await Product.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
+import { useLanguage } from '../../i18n/LanguageContext';
 import { shopsAPI } from '../../services/api';
 import { getImageUrl } from '../../utils/imageUrl';
 import { navigateToShop } from '../../utils/shopRouter';
@@ -21,22 +22,22 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
 
 const CATEGORIES = [
-  { key: '', label: 'All', icon: 'grid-outline' },
-  { key: 'fashion', label: 'Fashion', icon: 'shirt-outline' },
-  { key: 'accessories', label: 'Accessories', icon: 'watch-outline' },
-  { key: 'home-decor', label: 'Home', icon: 'home-outline' },
-  { key: 'food', label: 'Food', icon: 'restaurant-outline' },
-  { key: 'art', label: 'Art', icon: 'color-palette-outline' },
-  { key: 'handmade', label: 'Handmade', icon: 'hand-left-outline' },
-  { key: 'beauty', label: 'Beauty', icon: 'flower-outline' },
-  { key: 'services', label: 'Services', icon: 'construct-outline' },
+  { key: '', labelKey: 'all', icon: 'grid-outline' },
+  { key: 'fashion', labelKey: 'fashion', icon: 'shirt-outline' },
+  { key: 'accessories', labelKey: 'accessories', icon: 'watch-outline' },
+  { key: 'home-decor', labelKey: 'homeDecor', icon: 'home-outline' },
+  { key: 'food', labelKey: 'food', icon: 'restaurant-outline' },
+  { key: 'art', labelKey: 'art', icon: 'color-palette-outline' },
+  { key: 'handmade', labelKey: 'handmade', icon: 'hand-left-outline' },
+  { key: 'beauty', labelKey: 'beauty', icon: 'flower-outline' },
+  { key: 'services', labelKey: 'services', icon: 'construct-outline' },
 ];
 
 const CATEGORY_LABELS = Object.fromEntries(
-  CATEGORIES.map((c) => [c.key, c.label])
+  CATEGORIES.map((c) => [c.key, c.labelKey])
 );
 
-function ShopCardLarge({ shop, onPress }) {
+function ShopCardLarge({ shop, onPress, t }) {
   return (
     <TouchableOpacity style={styles.shopCard} onPress={onPress} activeOpacity={0.9}>
       {shop.profileImage ? (
@@ -52,7 +53,7 @@ function ShopCardLarge({ shop, onPress }) {
           {shop.category && (
             <View style={styles.categoryBadge}>
               <Text style={styles.categoryBadgeText}>
-                {CATEGORY_LABELS[shop.category] || shop.category}
+                {t(CATEGORY_LABELS[shop.category]) || shop.category}
               </Text>
             </View>
           )}
@@ -67,7 +68,7 @@ function ShopCardLarge({ shop, onPress }) {
           )}
           <View style={styles.metaItem}>
             <Ionicons name="people-outline" size={13} color={colors.terracotta} />
-            <Text style={styles.metaText}>{shop.followers?.length || 0} followers</Text>
+            <Text style={styles.metaText}>{shop.followers?.length || 0} {t('followers')}</Text>
           </View>
         </View>
       </View>
@@ -99,6 +100,7 @@ function HorizontalShopCard({ shop, onPress }) {
 }
 
 export default function HomeScreen({ navigation }) {
+  const { t } = useLanguage();
   const [shops, setShops] = useState([]);
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
@@ -136,7 +138,7 @@ export default function HomeScreen({ navigation }) {
       groups[cat].push(shop);
     });
     return Object.entries(groups).map(([key, data]) => ({
-      title: CATEGORY_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1),
+      title: t(CATEGORY_LABELS[key]) || key.charAt(0).toUpperCase() + key.slice(1),
       data: [{ key, shops: data }],
     }));
   };
@@ -145,8 +147,8 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.header}>
       <View style={styles.titleBar}>
         <View>
-          <Text style={styles.title}>Souq Amman</Text>
-          <Text style={styles.titleAccent}>Digital</Text>
+          <Text style={styles.title}>{t('souqAmman')}</Text>
+          <Text style={styles.titleAccent}>{t('digital')}</Text>
         </View>
         <TouchableOpacity
           style={styles.searchButton}
@@ -178,7 +180,7 @@ export default function HomeScreen({ navigation }) {
                 category === item.key && styles.categoryTextActive,
               ]}
             >
-              {item.label}
+              {t(item.labelKey)}
             </Text>
           </TouchableOpacity>
         )}
@@ -207,6 +209,7 @@ export default function HomeScreen({ navigation }) {
             <ShopCardLarge
               shop={item}
               onPress={() => navigateToShop(navigation, item)}
+              t={t}
             />
           )}
           refreshControl={
@@ -215,7 +218,7 @@ export default function HomeScreen({ navigation }) {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="storefront-outline" size={48} color={colors.textLight} />
-              <Text style={styles.emptyText}>No shops in this category</Text>
+              <Text style={styles.emptyText}>{t('noShopsCategory')}</Text>
             </View>
           }
         />
@@ -238,9 +241,9 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{section.title}</Text>
             <TouchableOpacity onPress={() => setCategory(
-              CATEGORIES.find((c) => c.label === section.title)?.key || ''
+              CATEGORIES.find((c) => t(c.labelKey) === section.title)?.key || ''
             )}>
-              <Text style={styles.seeAll}>See all</Text>
+              <Text style={styles.seeAll}>{t('seeAll')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -265,8 +268,8 @@ export default function HomeScreen({ navigation }) {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="storefront-outline" size={48} color={colors.textLight} />
-            <Text style={styles.emptyText}>No shops yet</Text>
-            <Text style={styles.emptySubtext}>Be the first to open a shop!</Text>
+            <Text style={styles.emptyText}>{t('noShopsYet')}</Text>
+            <Text style={styles.emptySubtext}>{t('beFirstShop')}</Text>
           </View>
         }
       />

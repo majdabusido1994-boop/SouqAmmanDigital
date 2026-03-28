@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "SOUQ AMMAN DIGITAL",
-    "slug": "souq-amman-digital",
+    "slug": "souqammandigital",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -32,10 +32,10 @@
     },
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "880452b3-f8cb-4111-b34d-52332aebc798"
       }
     },
-    "owner": "majdabusido1994-boop",
+    "owner": "souqammandigital",
     "plugins": [
       "expo-font",
       [
@@ -46,6 +46,12 @@
         }
       ],
       "expo-web-browser"
-    ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/880452b3-f8cb-4111-b34d-52332aebc798"
+    }
   }
 }

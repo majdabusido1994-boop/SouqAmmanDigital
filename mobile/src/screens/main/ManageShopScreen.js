@@ -15,8 +15,10 @@ import { colors, spacing, typography, borderRadius, shadows } from '../../theme'
 import { shopsAPI, productsAPI } from '../../services/api';
 import { navigateToShop } from '../../utils/shopRouter';
 import { getImageUrl } from '../../utils/imageUrl';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function ManageShopScreen({ route, navigation }) {
+  const { t } = useLanguage();
   const shopId = route?.params?.shopId;
   const [shop, setShop] = useState(null);
   const [products, setProducts] = useState([]);
@@ -48,19 +50,19 @@ export default function ManageShopScreen({ route, navigation }) {
 
   const handleDeleteProduct = (product) => {
     Alert.alert(
-      'Delete Product',
-      `Are you sure you want to delete "${product.name}"?`,
+      t('deleteProduct'),
+      `${t('confirmDeleteProduct')} "${product.name}"?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await productsAPI.delete(product._id);
               setProducts((prev) => prev.filter((p) => p._id !== product._id));
             } catch (error) {
-              Alert.alert('Error', error.message || 'Failed to delete product');
+              Alert.alert(t('error'), error.message || t('failedDelete'));
             }
           },
         },
@@ -91,9 +93,9 @@ export default function ManageShopScreen({ route, navigation }) {
 
       const { data } = await shopsAPI.uploadImage(shop._id, formData);
       setShop((prev) => ({ ...prev, [field]: data.url }));
-      Alert.alert('Success', `${field === 'profileImage' ? 'Logo' : 'Cover'} uploaded!`);
+      Alert.alert(t('successMsg'), field === 'profileImage' ? t('logoUploaded') : t('coverUploaded'));
     } catch (error) {
-      Alert.alert('Error', 'Failed to upload image');
+      Alert.alert(t('error'), t('failedUpload'));
       console.error('Upload error:', error);
     } finally {
       setUploading(null);
@@ -112,12 +114,12 @@ export default function ManageShopScreen({ route, navigation }) {
     return (
       <View style={styles.centered}>
         <Ionicons name="storefront-outline" size={48} color={colors.textLight} />
-        <Text style={styles.emptyText}>No shop found</Text>
+        <Text style={styles.emptyText}>{t('noShopFound')}</Text>
         <TouchableOpacity
           style={styles.createBtn}
           onPress={() => navigation.navigate('CreateShop')}
         >
-          <Text style={styles.createBtnText}>Create Shop</Text>
+          <Text style={styles.createBtnText}>{t('createShop')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -136,7 +138,7 @@ export default function ManageShopScreen({ route, navigation }) {
         ) : (
           <View style={[styles.coverImage, styles.coverPlaceholder]}>
             <Ionicons name="image-outline" size={32} color={colors.white} />
-            <Text style={styles.placeholderText}>Tap to add cover photo</Text>
+            <Text style={styles.placeholderText}>{t('tapToAddCover')}</Text>
           </View>
         )}
         {uploading === 'coverImage' && (
@@ -188,8 +190,8 @@ export default function ManageShopScreen({ route, navigation }) {
           <View style={[styles.actionIcon, { backgroundColor: colors.olive + '15' }]}>
             <Ionicons name="add-circle" size={24} color={colors.olive} />
           </View>
-          <Text style={styles.actionTitle}>Add Product</Text>
-          <Text style={styles.actionSubtitle}>List a new item</Text>
+          <Text style={styles.actionTitle}>{t('addProduct')}</Text>
+          <Text style={styles.actionSubtitle}>{t('listNewItem')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -199,15 +201,15 @@ export default function ManageShopScreen({ route, navigation }) {
           <View style={[styles.actionIcon, { backgroundColor: colors.terracotta + '15' }]}>
             <Ionicons name="eye" size={24} color={colors.terracotta} />
           </View>
-          <Text style={styles.actionTitle}>View Shop</Text>
-          <Text style={styles.actionSubtitle}>See public view</Text>
+          <Text style={styles.actionTitle}>{t('viewShop')}</Text>
+          <Text style={styles.actionSubtitle}>{t('seePublicView')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Products List */}
       <View style={styles.productsSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>My Products ({products.length})</Text>
+          <Text style={styles.sectionTitle}>{`${t('myProductsCount')} (${products.length})`}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('AddProduct')}>
             <Ionicons name="add" size={24} color={colors.terracotta} />
           </TouchableOpacity>
@@ -216,12 +218,12 @@ export default function ManageShopScreen({ route, navigation }) {
         {products.length === 0 ? (
           <View style={styles.emptyProducts}>
             <Ionicons name="pricetag-outline" size={36} color={colors.textLight} />
-            <Text style={styles.emptyProductsText}>No products yet</Text>
+            <Text style={styles.emptyProductsText}>{t('noProductsYet')}</Text>
             <TouchableOpacity
               style={styles.addFirstBtn}
               onPress={() => navigation.navigate('AddProduct')}
             >
-              <Text style={styles.addFirstBtnText}>Add Your First Product</Text>
+              <Text style={styles.addFirstBtnText}>{t('addFirstProduct')}</Text>
             </TouchableOpacity>
           </View>
         ) : (

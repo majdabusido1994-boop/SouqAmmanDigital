@@ -66,6 +66,17 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'Some products not found' });
     }
 
+    // Ensure all products belong to the same seller
+    const sellerIds = [...new Set(products.map((p) => p.seller.toString()))];
+    if (sellerIds.length > 1) {
+      return res.status(400).json({ message: 'All items in an order must be from the same seller' });
+    }
+
+    // Prevent ordering your own products
+    if (sellerIds[0] === req.user._id.toString()) {
+      return res.status(400).json({ message: 'You cannot order your own products' });
+    }
+
     const orderItems = products.map((p) => {
       const item = items.find((i) => i.productId === p._id.toString());
       return {
@@ -119,14 +130,27 @@ router.put('/:id/status', auth, async (req, res) => {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    if (order.seller.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Only the seller can update order status' });
+    const isSeller = order.seller.toString() === req.user._id.toString();
+    const isBuyer = order.buyer.toString() === req.user._id.toString();
+
+    if (!isSeller && !isBuyer) {
+      return res.status(403).json({ message: 'Not authorized' });
     }
 
     const { status, note } = req.body;
+
+    // Buyers can only cancel pending orders
+    if (isBuyer && (status !== 'cancelled' || order.status !== 'pending')) {
+      return res.status(403).json({ message: 'You can only cancel pending orders' });
+    }
     const validStatuses = ['confirmed', 'preparing', 'ready', 'delivered', 'cancelled'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    // Prevent updating already delivered or cancelled orders
+    if (order.status === 'delivered' || order.status === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot update a completed or cancelled order' });
     }
 
     order.status = status;

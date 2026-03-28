@@ -15,10 +15,12 @@ import { shopsAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import ProductCard from '../../components/ProductCard';
 import { getImageUrl } from '../../utils/imageUrl';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function ShopDetailScreen({ route, navigation }) {
   const { shopId } = route.params;
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [shop, setShop] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -90,12 +92,12 @@ export default function ShopDetailScreen({ route, navigation }) {
         <View style={styles.statsRow}>
           <View style={styles.stat}>
             <Text style={styles.statNumber}>{products.length}</Text>
-            <Text style={styles.statLabel}>Products</Text>
+            <Text style={styles.statLabel}>{t('products')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.stat}>
             <Text style={styles.statNumber}>{shop.followers?.length || 0}</Text>
-            <Text style={styles.statLabel}>Followers</Text>
+            <Text style={styles.statLabel}>{t('followers')}</Text>
           </View>
           {shop.neighborhood && (
             <>
@@ -120,7 +122,7 @@ export default function ShopDetailScreen({ route, navigation }) {
               color={isFollowing ? colors.terracotta : colors.white}
             />
             <Text style={[styles.followText, isFollowing && styles.followingText]}>
-              {isFollowing ? 'Following' : 'Follow'}
+              {isFollowing ? t('followingShop') : t('follow')}
             </Text>
           </TouchableOpacity>
 
@@ -158,7 +160,7 @@ export default function ShopDetailScreen({ route, navigation }) {
           )}
         </View>
 
-        <Text style={styles.productsTitle}>Products</Text>
+        <Text style={styles.productsTitle}>{t('products')}</Text>
       </View>
     </View>
   );
@@ -179,7 +181,7 @@ export default function ShopDetailScreen({ route, navigation }) {
       )}
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>No products yet</Text>
+          <Text style={styles.emptyText}>{t('noProductsYet')}</Text>
         </View>
       }
     />

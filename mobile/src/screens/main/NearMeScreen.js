@@ -13,6 +13,8 @@ import { colors, spacing, typography, borderRadius, shadows } from '../../theme'
 import { shopsAPI, productsAPI } from '../../services/api';
 import ProductCard from '../../components/ProductCard';
 import ShopCard from '../../components/ShopCard';
+import { navigateToShop, navigateToProduct } from '../../utils/shopRouter';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 const AMMAN_NEIGHBORHOODS = [
   { name: 'Abdoun', icon: 'business' },
@@ -29,6 +31,7 @@ const AMMAN_NEIGHBORHOODS = [
 ];
 
 export default function NearMeScreen({ navigation }) {
+  const { t } = useLanguage();
   const [selectedArea, setSelectedArea] = useState(null);
   const [shops, setShops] = useState([]);
   const [products, setProducts] = useState([]);
@@ -58,9 +61,9 @@ export default function NearMeScreen({ navigation }) {
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Ionicons name="location" size={24} color={colors.terracotta} />
-          <Text style={styles.title}>Near Me</Text>
+          <Text style={styles.title}>{t('nearMe')}</Text>
         </View>
-        <Text style={styles.subtitle}>Discover shops in your neighborhood</Text>
+        <Text style={styles.subtitle}>{t('discoverShops')}</Text>
       </View>
 
       {/* Neighborhood Grid */}
@@ -101,7 +104,7 @@ export default function NearMeScreen({ navigation }) {
             <View style={styles.areaInfo}>
               <Text style={styles.areaTitle}>{selectedArea}</Text>
               <Text style={styles.areaCount}>
-                {shops.length} shops · {products.length} products
+                {shops.length} {t('shops')} · {products.length} {t('products')}
               </Text>
             </View>
           </View>
@@ -117,7 +120,7 @@ export default function NearMeScreen({ navigation }) {
                 size={16}
                 color={tab === 'shops' ? colors.white : colors.textLight}
               />
-              <Text style={[styles.tabText, tab === 'shops' && styles.tabTextActive]}>Shops</Text>
+              <Text style={[styles.tabText, tab === 'shops' && styles.tabTextActive]}>{t('shops')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.tab, tab === 'products' && styles.tabActive]}
@@ -128,7 +131,7 @@ export default function NearMeScreen({ navigation }) {
                 size={16}
                 color={tab === 'products' ? colors.white : colors.textLight}
               />
-              <Text style={[styles.tabText, tab === 'products' && styles.tabTextActive]}>Products</Text>
+              <Text style={[styles.tabText, tab === 'products' && styles.tabTextActive]}>{t('products')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -144,24 +147,13 @@ export default function NearMeScreen({ navigation }) {
               renderItem={({ item }) => (
                 <ShopCard
                   shop={item}
-                  onPress={() => {
-                    const shopType = item.category;
-                    if (shopType === 'fashion' || shopType === 'accessories') {
-                      navigation.navigate('FashionShop', { shopId: item._id });
-                    } else if (shopType === 'food') {
-                      navigation.navigate('FoodShop', { shopId: item._id });
-                    } else if (shopType === 'handmade' || shopType === 'art') {
-                      navigation.navigate('HandcraftShop', { shopId: item._id });
-                    } else {
-                      navigation.navigate('ShopDetail', { shopId: item._id });
-                    }
-                  }}
+                  onPress={() => navigateToShop(navigation, item)}
                 />
               )}
               ListEmptyComponent={
                 <View style={styles.empty}>
                   <Ionicons name="storefront-outline" size={40} color={colors.textLight} />
-                  <Text style={styles.emptyText}>No shops in this area yet</Text>
+                  <Text style={styles.emptyText}>{t('noShopsInArea')}</Text>
                 </View>
               }
             />
@@ -175,13 +167,13 @@ export default function NearMeScreen({ navigation }) {
               renderItem={({ item }) => (
                 <ProductCard
                   product={item}
-                  onPress={() => navigation.navigate('ProductDetail', { productId: item._id })}
+                  onPress={() => navigateToProduct(navigation, item)}
                 />
               )}
               ListEmptyComponent={
                 <View style={styles.empty}>
                   <Ionicons name="pricetag-outline" size={40} color={colors.textLight} />
-                  <Text style={styles.emptyText}>No products in this area yet</Text>
+                  <Text style={styles.emptyText}>{t('noProductsInArea')}</Text>
                 </View>
               }
             />

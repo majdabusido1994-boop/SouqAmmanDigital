@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../../theme';
+import { useLanguage } from '../../i18n/LanguageContext';
 import { productsAPI, shopsAPI } from '../../services/api';
 import ProductCard from '../../components/ProductCard';
 import ShopCard from '../../components/ShopCard';
@@ -22,6 +23,7 @@ const AMMAN_NEIGHBORHOODS = [
 ];
 
 export default function SearchScreen({ navigation }) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('products');
   const [results, setResults] = useState([]);
@@ -58,7 +60,7 @@ export default function SearchScreen({ navigation }) {
             style={styles.searchInput}
             value={query}
             onChangeText={setQuery}
-            placeholder={tab === 'products' ? 'Search products...' : 'Search shops...'}
+            placeholder={tab === 'products' ? t('searchProducts') : t('searchShops')}
             placeholderTextColor={colors.textLight}
             onSubmitEditing={search}
             returnKeyType="search"
@@ -83,20 +85,20 @@ export default function SearchScreen({ navigation }) {
           style={[styles.tab, tab === 'products' && styles.tabActive]}
           onPress={() => { setTab('products'); setResults([]); }}
         >
-          <Text style={[styles.tabText, tab === 'products' && styles.tabTextActive]}>Products</Text>
+          <Text style={[styles.tabText, tab === 'products' && styles.tabTextActive]}>{t('products')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, tab === 'shops' && styles.tabActive]}
           onPress={() => { setTab('shops'); setResults([]); }}
         >
-          <Text style={[styles.tabText, tab === 'shops' && styles.tabTextActive]}>Shops</Text>
+          <Text style={[styles.tabText, tab === 'shops' && styles.tabTextActive]}>{t('shops')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Filters */}
       {showFilters && (
         <View style={styles.filtersContainer}>
-          <Text style={styles.filterLabel}>Neighborhood</Text>
+          <Text style={styles.filterLabel}>{t('neighborhood')}</Text>
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -155,7 +157,7 @@ export default function SearchScreen({ navigation }) {
             <View style={styles.empty}>
               <Ionicons name="search-outline" size={48} color={colors.textLight} />
               <Text style={styles.emptyText}>
-                {query ? 'No results found' : 'Search for products or shops'}
+                {query ? t('noResults') : t('searchPrompt')}
               </Text>
             </View>
           }

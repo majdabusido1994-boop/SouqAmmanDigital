@@ -13,17 +13,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import { shopsAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 const CATEGORIES = [
-  { key: 'fashion', label: 'Fashion', icon: 'shirt' },
-  { key: 'accessories', label: 'Accessories', icon: 'watch' },
-  { key: 'home-decor', label: 'Home Decor', icon: 'home' },
-  { key: 'food', label: 'Food', icon: 'restaurant' },
-  { key: 'art', label: 'Art', icon: 'color-palette' },
-  { key: 'handmade', label: 'Handmade', icon: 'hand-left' },
-  { key: 'beauty', label: 'Beauty', icon: 'sparkles' },
-  { key: 'services', label: 'Services', icon: 'construct' },
-  { key: 'other', label: 'Other', icon: 'ellipsis-horizontal' },
+  { key: 'fashion', labelKey: 'fashion', icon: 'shirt' },
+  { key: 'accessories', labelKey: 'accessories', icon: 'watch' },
+  { key: 'home-decor', labelKey: 'homeDecor', icon: 'home' },
+  { key: 'food', labelKey: 'food', icon: 'restaurant' },
+  { key: 'art', labelKey: 'art', icon: 'color-palette' },
+  { key: 'handmade', labelKey: 'handmade', icon: 'hand-left' },
+  { key: 'beauty', labelKey: 'beauty', icon: 'sparkles' },
+  { key: 'services', labelKey: 'services', icon: 'construct' },
+  { key: 'other', labelKey: 'other', icon: 'ellipsis-horizontal' },
 ];
 
 const NEIGHBORHOODS = [
@@ -33,6 +34,7 @@ const NEIGHBORHOODS = [
 
 export default function CreateShopScreen({ navigation }) {
   const { refreshUser } = useAuth();
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [instagramHandle, setInstagramHandle] = useState('');
@@ -43,7 +45,7 @@ export default function CreateShopScreen({ navigation }) {
 
   const handleCreate = async () => {
     if (!name.trim() || !description.trim() || !category) {
-      Alert.alert('Error', 'Please fill in the name, description, and category');
+      Alert.alert(t('error'), t('fillNameDescCategory'));
       return;
     }
 
@@ -59,9 +61,9 @@ export default function CreateShopScreen({ navigation }) {
       });
       // Refresh user to update role to seller
       await refreshUser();
-      Alert.alert('Success', 'Your shop has been created! Now add your logo and products.', [
+      Alert.alert(t('successMsg'), t('shopCreated'), [
         {
-          text: 'Go to My Shop',
+          text: t('goToMyShop'),
           onPress: () => {
             navigation.reset({
               index: 1,
@@ -74,7 +76,7 @@ export default function CreateShopScreen({ navigation }) {
         },
       ]);
     } catch (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('error'), error.message);
     } finally {
       setLoading(false);
     }
@@ -82,29 +84,29 @@ export default function CreateShopScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.heading}>Set up your shop</Text>
-      <Text style={styles.subheading}>Tell buyers about your brand</Text>
+      <Text style={styles.heading}>{t('setupYourShop')}</Text>
+      <Text style={styles.subheading}>{t('tellBuyersAbout')}</Text>
 
       {/* Name */}
       <View style={styles.field}>
-        <Text style={styles.label}>Shop Name *</Text>
+        <Text style={styles.label}>{t('shopName')} *</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
-          placeholder="e.g., Amman Crafts"
+          placeholder={t('shopNamePlaceholder')}
           placeholderTextColor={colors.textLight}
         />
       </View>
 
       {/* Description */}
       <View style={styles.field}>
-        <Text style={styles.label}>Description *</Text>
+        <Text style={styles.label}>{t('description')} *</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
           value={description}
           onChangeText={setDescription}
-          placeholder="What do you sell? What makes your shop special?"
+          placeholder={t('descriptionPlaceholder')}
           placeholderTextColor={colors.textLight}
           multiline
           numberOfLines={4}
@@ -114,7 +116,7 @@ export default function CreateShopScreen({ navigation }) {
 
       {/* Category */}
       <View style={styles.field}>
-        <Text style={styles.label}>Category *</Text>
+        <Text style={styles.label}>{t('categoryLabel')} *</Text>
         <View style={styles.categoryGrid}>
           {CATEGORIES.map((cat) => (
             <TouchableOpacity
@@ -133,7 +135,7 @@ export default function CreateShopScreen({ navigation }) {
                   category === cat.key && styles.categoryTextActive,
                 ]}
               >
-                {cat.label}
+                {t(cat.labelKey)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -142,7 +144,7 @@ export default function CreateShopScreen({ navigation }) {
 
       {/* Instagram */}
       <View style={styles.field}>
-        <Text style={styles.label}>Instagram Handle</Text>
+        <Text style={styles.label}>{t('instagramHandle')}</Text>
         <TextInput
           style={styles.input}
           value={instagramHandle}
@@ -155,7 +157,7 @@ export default function CreateShopScreen({ navigation }) {
 
       {/* WhatsApp */}
       <View style={styles.field}>
-        <Text style={styles.label}>WhatsApp Number</Text>
+        <Text style={styles.label}>{t('whatsappNumber')}</Text>
         <TextInput
           style={styles.input}
           value={whatsappNumber}
@@ -168,7 +170,7 @@ export default function CreateShopScreen({ navigation }) {
 
       {/* Neighborhood */}
       <View style={styles.field}>
-        <Text style={styles.label}>Neighborhood</Text>
+        <Text style={styles.label}>{t('neighborhood')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.neighborhoodRow}>
             {NEIGHBORHOODS.map((n) => (
@@ -195,7 +197,7 @@ export default function CreateShopScreen({ navigation }) {
         {loading ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text style={styles.submitText}>Create My Shop</Text>
+          <Text style={styles.submitText}>{t('createMyShop')}</Text>
         )}
       </TouchableOpacity>
     </ScrollView>

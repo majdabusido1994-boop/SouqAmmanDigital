@@ -12,10 +12,11 @@ import {
 } from 'react-native';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
-import GoogleSignInButton from '../../components/GoogleSignInButton';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,14 +31,14 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      showError('Error', 'Please fill in all fields');
+      showError(t('error'), t('fillAllFields'));
       return;
     }
     setLoading(true);
     try {
       await login(email.trim().toLowerCase(), password);
     } catch (error) {
-      showError('Login Failed', error.message);
+      showError(t('loginFailed'), error.message);
     } finally {
       setLoading(false);
     }
@@ -48,26 +49,34 @@ export default function LoginScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      {/* Language toggle */}
+      <TouchableOpacity
+        style={styles.langToggle}
+        onPress={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+      >
+        <Text style={styles.langToggleText}>{language === 'en' ? 'العربية' : 'English'}</Text>
+      </TouchableOpacity>
+
       <View style={styles.inner}>
         {/* Logo Area */}
         <View style={styles.logoContainer}>
           <View style={styles.logoCircle}>
             <Text style={styles.logoText}>SAD</Text>
           </View>
-          <Text style={styles.title}>SOUQ AMMAN</Text>
-          <Text style={styles.subtitle}>DIGITAL</Text>
-          <Text style={styles.tagline}>Your local digital bazaar</Text>
+          <Text style={styles.title}>{t('souqAmman')}</Text>
+          <Text style={styles.subtitle}>{t('digital')}</Text>
+          <Text style={styles.tagline}>{t('yourLocalBazaar')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>{t('email')}</Text>
             <TextInput
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="your@email.com"
+              placeholder={t('emailPlaceholder')}
               placeholderTextColor={colors.textLight}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -75,12 +84,12 @@ export default function LoginScreen({ navigation }) {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t('password')}</Text>
             <TextInput
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder="Enter your password"
+              placeholder={t('passwordPlaceholder')}
               placeholderTextColor={colors.textLight}
               secureTextEntry
             />
@@ -94,26 +103,16 @@ export default function LoginScreen({ navigation }) {
             {loading ? (
               <ActivityIndicator color={colors.white} />
             ) : (
-              <Text style={styles.buttonText}>Sign In</Text>
+              <Text style={styles.buttonText}>{t('signIn')}</Text>
             )}
           </TouchableOpacity>
-
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Google Sign-In */}
-          <GoogleSignInButton />
 
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => navigation.navigate('Register')}
           >
             <Text style={styles.linkText}>
-              Don't have an account? <Text style={styles.linkBold}>Sign Up</Text>
+              {t('noAccount')} <Text style={styles.linkBold}>{t('signUp')}</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -214,21 +213,6 @@ const styles = StyleSheet.create({
     ...typography.h3,
     color: colors.white,
   },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.xs,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    ...typography.bodySmall,
-    color: colors.textLight,
-    paddingHorizontal: spacing.md,
-  },
   linkButton: {
     alignItems: 'center',
     padding: spacing.md,
@@ -240,5 +224,22 @@ const styles = StyleSheet.create({
   linkBold: {
     color: colors.terracotta,
     fontWeight: '600',
+  },
+  langToggle: {
+    position: 'absolute',
+    top: 50,
+    right: spacing.lg,
+    zIndex: 10,
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  langToggleText: {
+    ...typography.bodySmall,
+    fontWeight: '600',
+    color: colors.terracotta,
   },
 });

@@ -12,8 +12,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { adminAPI } from '../../services/api';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function AdminMessagesScreen() {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,9 +48,9 @@ export default function AdminMessagesScreen() {
     if (Platform.OS === 'web') {
       if (window.confirm('Delete this message?')) doDelete();
     } else {
-      Alert.alert('Delete Message', 'Delete this message?', [
+      Alert.alert(t('deleteMessage'), 'Delete this message?', [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: doDelete },
+        { text: t('deleteMessage'), style: 'destructive', onPress: doDelete },
       ]);
     }
   };
@@ -93,7 +95,7 @@ export default function AdminMessagesScreen() {
         </View>
       )}
       ListEmptyComponent={
-        <Text style={styles.empty}>No messages</Text>
+        <Text style={styles.empty}>{t('noMessages')}</Text>
       }
     />
   );

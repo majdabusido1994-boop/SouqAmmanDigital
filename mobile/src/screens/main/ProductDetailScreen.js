@@ -18,12 +18,14 @@ import { colors, spacing, typography, borderRadius, shadows } from '../../theme'
 import { productsAPI, reviewsAPI, ordersAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUrl';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
 export default function ProductDetailScreen({ route, navigation }) {
   const { productId } = route.params;
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
@@ -54,7 +56,7 @@ export default function ProductDetailScreen({ route, navigation }) {
 
   const handleSubmitReview = async () => {
     if (myRating === 0) {
-      Alert.alert('Error', 'Please select a rating');
+      Alert.alert(t('error'), t('selectRating'));
       return;
     }
     setSubmittingReview(true);
@@ -65,7 +67,7 @@ export default function ProductDetailScreen({ route, navigation }) {
       setMyReviewText('');
       fetchReviews();
     } catch (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('error'), error.message);
     } finally {
       setSubmittingReview(false);
     }
@@ -191,7 +193,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           <Text style={styles.price}>{product.price} JOD</Text>
           {product.acceptsOffers && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>Accepts Offers</Text>
+              <Text style={styles.badgeText}>{t('acceptsOffers')}</Text>
             </View>
           )}
         </View>
@@ -220,7 +222,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
         </TouchableOpacity>
 
-        <Text style={styles.sectionTitle}>Description</Text>
+        <Text style={styles.sectionTitle}>{t('description')}</Text>
         <Text style={styles.description}>{product.description}</Text>
 
         {product.neighborhood && (
@@ -245,11 +247,11 @@ export default function ProductDetailScreen({ route, navigation }) {
       <View style={styles.reviewsSection}>
         <View style={styles.reviewsHeader}>
           <View>
-            <Text style={styles.sectionTitle}>Reviews</Text>
+            <Text style={styles.sectionTitle}>{t('reviewsTitle')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
               {renderStars(Math.round(avgRating))}
               <Text style={styles.ratingText}>
-                {avgRating > 0 ? avgRating.toFixed(1) : 'No reviews'} ({reviewCount})
+                {avgRating > 0 ? avgRating.toFixed(1) : t('noReviews')} ({reviewCount})
               </Text>
             </View>
           </View>
@@ -259,20 +261,20 @@ export default function ProductDetailScreen({ route, navigation }) {
               onPress={() => setShowReviewForm(!showReviewForm)}
             >
               <Ionicons name="create-outline" size={16} color={colors.terracotta} />
-              <Text style={styles.writeReviewText}>Write Review</Text>
+              <Text style={styles.writeReviewText}>{t('writeReview')}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {showReviewForm && (
           <View style={styles.reviewForm}>
-            <Text style={styles.reviewFormLabel}>Your Rating</Text>
+            <Text style={styles.reviewFormLabel}>{t('yourRating')}</Text>
             {renderStars(myRating, 28, true)}
             <TextInput
               style={styles.reviewInput}
               value={myReviewText}
               onChangeText={setMyReviewText}
-              placeholder="Share your experience... (optional)"
+              placeholder={t('shareExperience')}
               placeholderTextColor={colors.textLight}
               multiline
               numberOfLines={3}
@@ -286,7 +288,7 @@ export default function ProductDetailScreen({ route, navigation }) {
               {submittingReview ? (
                 <ActivityIndicator color={colors.white} size="small" />
               ) : (
-                <Text style={styles.submitReviewText}>Submit Review</Text>
+                <Text style={styles.submitReviewText}>{t('submitReview')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -320,12 +322,12 @@ export default function ProductDetailScreen({ route, navigation }) {
             style={styles.primaryButton}
             onPress={() => {
               Alert.alert(
-                'Place Order',
+                t('placeOrder'),
                 `Order "${product.name}" for ${product.price} JOD?`,
                 [
-                  { text: 'Cancel', style: 'cancel' },
+                  { text: t('cancel'), style: 'cancel' },
                   {
-                    text: 'Cash on Pickup',
+                    text: t('cashOnPickup'),
                     onPress: async () => {
                       try {
                         await ordersAPI.create({
@@ -334,11 +336,11 @@ export default function ProductDetailScreen({ route, navigation }) {
                           paymentMethod: 'cash',
                           deliveryMethod: 'pickup',
                         });
-                        Alert.alert('Order Placed!', 'The seller will confirm your order shortly.', [
-                          { text: 'View Orders', onPress: () => navigation.navigate('Orders') },
+                        Alert.alert(t('orderPlaced'), t('sellerWillConfirm'), [
+                          { text: t('viewOrders'), onPress: () => navigation.navigate('Orders') },
                         ]);
                       } catch (error) {
-                        Alert.alert('Error', error.message);
+                        Alert.alert(t('error'), error.message);
                       }
                     },
                   },
@@ -347,13 +349,13 @@ export default function ProductDetailScreen({ route, navigation }) {
             }}
           >
             <Ionicons name="bag-check-outline" size={20} color={colors.white} />
-            <Text style={styles.primaryButtonText}>Order Now</Text>
+            <Text style={styles.primaryButtonText}>{t('orderNow')}</Text>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity style={styles.secondaryButton} onPress={handleMessage}>
           <Ionicons name="chatbubble-outline" size={20} color={colors.terracotta} />
-          <Text style={styles.secondaryButtonText}>Message Seller</Text>
+          <Text style={styles.secondaryButtonText}>{t('messageSeller')}</Text>
         </TouchableOpacity>
 
         {product.acceptsOffers && (
@@ -369,7 +371,7 @@ export default function ProductDetailScreen({ route, navigation }) {
             }
           >
             <Ionicons name="pricetag-outline" size={20} color={colors.terracotta} />
-            <Text style={styles.secondaryButtonText}>Make an Offer</Text>
+            <Text style={styles.secondaryButtonText}>{t('makeOffer')}</Text>
           </TouchableOpacity>
         )}
 
@@ -386,7 +388,7 @@ export default function ProductDetailScreen({ route, navigation }) {
             }
           >
             <Ionicons name="construct-outline" size={20} color={colors.terracotta} />
-            <Text style={styles.secondaryButtonText}>Request Custom Order</Text>
+            <Text style={styles.secondaryButtonText}>{t('requestCustomOrder')}</Text>
           </TouchableOpacity>
         )}
 

@@ -14,10 +14,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import { messagesAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function ChatScreen({ route, navigation }) {
   const { userId, userName, productId, messageType: initialType } = route.params;
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [offerAmount, setOfferAmount] = useState('');
@@ -78,13 +80,13 @@ export default function ChatScreen({ route, navigation }) {
         {item.messageType === 'offer' && (
           <View style={styles.offerBadge}>
             <Ionicons name="pricetag" size={12} color={colors.terracotta} />
-            <Text style={styles.offerBadgeText}>Offer: {item.offerAmount} JOD</Text>
+            <Text style={styles.offerBadgeText}>{`${t('offerColon')} ${item.offerAmount} JOD`}</Text>
           </View>
         )}
         {item.messageType === 'custom-order' && (
           <View style={styles.offerBadge}>
             <Ionicons name="construct" size={12} color={colors.olive} />
-            <Text style={[styles.offerBadgeText, { color: colors.olive }]}>Custom Order</Text>
+            <Text style={[styles.offerBadgeText, { color: colors.olive }]}>{t('customOrderLabel')}</Text>
           </View>
         )}
         <Text style={[styles.messageText, isMe && styles.myMessageText]}>{item.text}</Text>
@@ -118,7 +120,7 @@ export default function ChatScreen({ route, navigation }) {
         onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>Start a conversation</Text>
+            <Text style={styles.emptyText}>{t('startConversation')}</Text>
           </View>
         }
       />
@@ -126,7 +128,7 @@ export default function ChatScreen({ route, navigation }) {
       {/* Offer Input */}
       {messageType === 'offer' && (
         <View style={styles.offerBar}>
-          <Text style={styles.offerLabel}>Your offer (JOD):</Text>
+          <Text style={styles.offerLabel}>{t('yourOfferJOD')}</Text>
           <TextInput
             style={styles.offerInput}
             value={offerAmount}
@@ -149,10 +151,10 @@ export default function ChatScreen({ route, navigation }) {
           onChangeText={setText}
           placeholder={
             messageType === 'offer'
-              ? 'Add a message with your offer...'
+              ? t('addMessageWithOffer')
               : messageType === 'custom-order'
-              ? 'Describe what you want...'
-              : 'Type a message...'
+              ? t('describeWhatYouWant')
+              : t('typeMessage')
           }
           placeholderTextColor={colors.textLight}
           multiline

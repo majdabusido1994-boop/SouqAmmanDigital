@@ -4,7 +4,7 @@ import { API_URL } from '../config';
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 60000,
 });
 
 // Request interceptor - attach token
@@ -116,6 +116,5 @@ export const adminAPI = {
   getMessages: (params) => api.get('/admin/messages', { params }),
   deleteMessage: (id) => api.delete(`/admin/messages/${id}`),
 };
-
 
 export default api;

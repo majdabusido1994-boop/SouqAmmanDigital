@@ -11,24 +11,29 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const { category, neighborhood, search, page = 1, limit = 20 } = req.query;
+    const cappedLimit = Math.min(Math.max(Number(limit) || 20, 1), 50);
+    const pageNum = Math.max(Number(page) || 1, 1);
     const query = { isActive: true };
 
     if (category) query.category = category;
     if (neighborhood) query.neighborhood = neighborhood;
-    if (search) query.name = { $regex: search, $options: 'i' };
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.name = { $regex: escaped, $options: 'i' };
+    }
 
     const shops = await Shop.find(query)
       .populate('owner', 'name avatar')
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
+      .skip((pageNum - 1) * cappedLimit)
+      .limit(cappedLimit);
 
     const total = await Shop.countDocuments(query);
 
     res.json({
       shops,
-      totalPages: Math.ceil(total / limit),
-      currentPage: Number(page),
+      totalPages: Math.ceil(total / cappedLimit),
+      currentPage: pageNum,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -76,8 +81,20 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'You already have a shop' });
     }
 
+    const { name, description, category, neighborhood, address, instagramHandle, whatsappNumber } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: 'Shop name is required' });
+    }
+
     const shop = await Shop.create({
-      ...req.body,
+      name: name.trim(),
+      description: description?.trim(),
+      category,
+      neighborhood,
+      address: address?.trim(),
+      instagramHandle: instagramHandle?.trim(),
+      whatsappNumber: whatsappNumber?.trim(),
       owner: req.user._id,
     });
 
@@ -96,7 +113,13 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    const updated = await Shop.findByIdAndUpdate(req.params.id, req.body, {
+    const allowedFields = ['name', 'description', 'category', 'neighborhood', 'address', 'instagramHandle', 'whatsappNumber', 'isActive'];
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) updateData[key] = req.body[key];
+    }
+
+    const updated = await Shop.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });

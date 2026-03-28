@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../services/api';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 const NEIGHBORHOODS = [
   'Abdoun', 'Jabal Amman', 'Rainbow Street', 'Sweifieh',
@@ -22,6 +23,7 @@ const NEIGHBORHOODS = [
 ];
 
 export default function EditProfileScreen({ navigation }) {
+  const { t } = useLanguage();
   const { user, updateUser } = useAuth();
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -43,7 +45,7 @@ export default function EditProfileScreen({ navigation }) {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Name is required');
+      Alert.alert(t('error'), t('nameRequired'));
       return;
     }
 
@@ -56,11 +58,11 @@ export default function EditProfileScreen({ navigation }) {
         avatar,
       });
       updateUser(data);
-      Alert.alert('Success', 'Profile updated!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert(t('successMsg'), t('profileUpdated'), [
+        { text: t('ok'), onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to update profile');
+      Alert.alert(t('error'), error.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
@@ -80,24 +82,24 @@ export default function EditProfileScreen({ navigation }) {
         <View style={styles.cameraBadge}>
           <Ionicons name="camera" size={14} color={colors.white} />
         </View>
-        <Text style={styles.changePhotoText}>Change Photo</Text>
+        <Text style={styles.changePhotoText}>{t('changePhoto')}</Text>
       </TouchableOpacity>
 
       {/* Name */}
       <View style={styles.field}>
-        <Text style={styles.label}>Name *</Text>
+        <Text style={styles.label}>{t('name')} *</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
-          placeholder="Your name"
+          placeholder={t('yourName')}
           placeholderTextColor={colors.textLight}
         />
       </View>
 
       {/* Phone */}
       <View style={styles.field}>
-        <Text style={styles.label}>Phone</Text>
+        <Text style={styles.label}>{t('phone')}</Text>
         <TextInput
           style={styles.input}
           value={phone}
@@ -110,7 +112,7 @@ export default function EditProfileScreen({ navigation }) {
 
       {/* Neighborhood */}
       <View style={styles.field}>
-        <Text style={styles.label}>Neighborhood</Text>
+        <Text style={styles.label}>{t('neighborhood')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.chipRow}>
             {NEIGHBORHOODS.map((n) => (
@@ -130,7 +132,7 @@ export default function EditProfileScreen({ navigation }) {
 
       {/* Email (read-only) */}
       <View style={styles.field}>
-        <Text style={styles.label}>Email</Text>
+        <Text style={styles.label}>{t('email')}</Text>
         <View style={[styles.input, styles.inputDisabled]}>
           <Text style={styles.disabledText}>{user?.email}</Text>
         </View>
@@ -145,7 +147,7 @@ export default function EditProfileScreen({ navigation }) {
         {saving ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text style={styles.saveText}>Save Changes</Text>
+          <Text style={styles.saveText}>{t('saveChanges')}</Text>
         )}
       </TouchableOpacity>
     </ScrollView>

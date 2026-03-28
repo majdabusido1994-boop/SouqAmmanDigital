@@ -15,8 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { messagesAPI } from '../../services/api';
 import AnimatedButton from '../../components/shared/AnimatedButton';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function CustomOrderScreen({ route, navigation }) {
+  const { t } = useLanguage();
   const { sellerId, shopName, productId } = route.params;
   const [details, setDetails] = useState('');
   const [budget, setBudget] = useState('');
@@ -36,18 +38,18 @@ export default function CustomOrderScreen({ route, navigation }) {
 
   const handleSubmit = async () => {
     if (!details.trim()) {
-      Alert.alert('Error', 'Please describe what you\'d like made');
+      Alert.alert(t('error'), t('describeWhatYouWantMade'));
       return;
     }
 
     setLoading(true);
     try {
       const text = [
-        `CUSTOM ORDER REQUEST`,
+        t('customOrderRequest'),
         ``,
-        `Details: ${details.trim()}`,
-        budget ? `Budget: ${budget} JOD` : '',
-        timeline ? `Timeline: ${timeline}` : '',
+        `${t('details')}: ${details.trim()}`,
+        budget ? `${t('budget')}: ${budget} JOD` : '',
+        timeline ? `${t('timeline')}: ${timeline}` : '',
       ].filter(Boolean).join('\n');
 
       await messagesAPI.send(sellerId, {
@@ -57,12 +59,12 @@ export default function CustomOrderScreen({ route, navigation }) {
       });
 
       Alert.alert(
-        'Request Sent!',
-        `Your custom order request has been sent to ${shopName}. They'll respond in your messages.`,
-        [{ text: 'OK', onPress: () => navigation.navigate('Messages') }]
+        t('requestSent'),
+        t('requestSentDesc'),
+        [{ text: t('ok'), onPress: () => navigation.navigate('Messages') }]
       );
     } catch (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('error'), error.message);
     } finally {
       setLoading(false);
     }
@@ -75,18 +77,18 @@ export default function CustomOrderScreen({ route, navigation }) {
         <View style={styles.iconCircle}>
           <Ionicons name="construct" size={28} color={colors.craftClay} />
         </View>
-        <Text style={styles.title}>Request Custom Order</Text>
-        <Text style={styles.subtitle}>from {shopName}</Text>
+        <Text style={styles.title}>{t('requestCustomOrderTitle')}</Text>
+        <Text style={styles.subtitle}>{t('from')} {shopName}</Text>
       </View>
 
       {/* Details */}
       <View style={styles.field}>
-        <Text style={styles.label}>What would you like made? *</Text>
+        <Text style={styles.label}>{t('whatWouldYouLike')} *</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
           value={details}
           onChangeText={setDetails}
-          placeholder="Describe your vision... materials, colors, size, style, any specific details"
+          placeholder={t('describeVision')}
           placeholderTextColor={colors.textLight}
           multiline
           numberOfLines={6}
@@ -96,8 +98,8 @@ export default function CustomOrderScreen({ route, navigation }) {
 
       {/* Reference Images */}
       <View style={styles.field}>
-        <Text style={styles.label}>Reference images (optional)</Text>
-        <Text style={styles.hint}>Share inspiration photos to help the artisan understand your vision</Text>
+        <Text style={styles.label}>{t('referenceImages')}</Text>
+        <Text style={styles.hint}>{t('shareInspiration')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.imagesRow}>
             {referenceImages.map((uri, i) => (
@@ -114,7 +116,7 @@ export default function CustomOrderScreen({ route, navigation }) {
             {referenceImages.length < 3 && (
               <TouchableOpacity style={styles.addImage} onPress={pickImage}>
                 <Ionicons name="image-outline" size={24} color={colors.craftClay} />
-                <Text style={styles.addImageText}>Add</Text>
+                <Text style={styles.addImageText}>{t('add')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -123,12 +125,12 @@ export default function CustomOrderScreen({ route, navigation }) {
 
       {/* Budget */}
       <View style={styles.field}>
-        <Text style={styles.label}>Budget (JOD)</Text>
+        <Text style={styles.label}>{t('budgetJOD')}</Text>
         <TextInput
           style={styles.input}
           value={budget}
           onChangeText={setBudget}
-          placeholder="Your budget range"
+          placeholder={t('budgetRange')}
           placeholderTextColor={colors.textLight}
           keyboardType="decimal-pad"
         />
@@ -136,16 +138,21 @@ export default function CustomOrderScreen({ route, navigation }) {
 
       {/* Timeline */}
       <View style={styles.field}>
-        <Text style={styles.label}>When do you need it?</Text>
+        <Text style={styles.label}>{t('whenNeedIt')}</Text>
         <View style={styles.timelineOptions}>
-          {['No rush', '1-2 weeks', 'This week', 'ASAP'].map((opt) => (
+          {[
+            { value: 'No rush', labelKey: 'noRush' },
+            { value: '1-2 weeks', labelKey: 'oneToTwoWeeks' },
+            { value: 'This week', labelKey: 'thisWeek' },
+            { value: 'ASAP', labelKey: 'asap' },
+          ].map((opt) => (
             <TouchableOpacity
-              key={opt}
-              style={[styles.timeChip, timeline === opt && styles.timeChipActive]}
-              onPress={() => setTimeline(opt)}
+              key={opt.value}
+              style={[styles.timeChip, timeline === opt.value && styles.timeChipActive]}
+              onPress={() => setTimeline(opt.value)}
             >
-              <Text style={[styles.timeChipText, timeline === opt && styles.timeChipTextActive]}>
-                {opt}
+              <Text style={[styles.timeChipText, timeline === opt.value && styles.timeChipTextActive]}>
+                {t(opt.labelKey)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -163,13 +170,13 @@ export default function CustomOrderScreen({ route, navigation }) {
         ) : (
           <>
             <Ionicons name="send" size={18} color={colors.white} />
-            <Text style={styles.submitText}>Submit Request</Text>
+            <Text style={styles.submitText}>{t('submitRequest')}</Text>
           </>
         )}
       </AnimatedButton>
 
       <Text style={styles.note}>
-        The artisan will review your request and respond with pricing and availability.
+        {t('artisanWillReview')}
       </Text>
     </ScrollView>
   );
